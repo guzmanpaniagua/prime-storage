@@ -1,0 +1,68 @@
+{
+  "phases": [
+    {
+      "phase": "PRIMES",
+      "status": "COMPLETED",
+      "startedAt": "2026-11-02T23:08:33.777Z",
+      "completedAt": "2026-11-02T23:17:40.710Z",
+      "completedBy": "guzman"
+    },
+    {
+      "phase": "PRODUCTS",
+      "status": "ACTIVE",
+      "startedAt": "2026-11-02T23:17:40.710Z",
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "ANCHORS",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "ANCHOR_SIEVE",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "FACTORS",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "SMALL_CERTIFICATES",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "SUCCESSIVE_SIEVES",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    },
+    {
+      "phase": "FINAL_CERTIFICATION",
+      "status": "PLANNED",
+      "startedAt": null,
+      "completedAt": null,
+      "completedBy": null
+    }
+  ],
+  "audit": [
+    {
+      "user": "guzman",
+      "phase": "PRIMES",
+      "timestamp": "2026-11-02T23:17:40.710Z",
+      "action": "PHASE_COMPLETED"
+    }
+  ]
+}

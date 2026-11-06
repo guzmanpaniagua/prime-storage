@@ -1,0 +1,42 @@
+{
+  "reference": {
+    "id": "publish-index-PRIMES",
+    "path": "publish-index/PRIMES.json"
+  },
+  "metadata": {
+    "type": "publish-index-primes",
+    "version": "1.0.0"
+  },
+  "contentType": "json",
+  "data": {
+    "phase": "PRIMES",
+    "packages": [
+      {
+        "packageId": 1,
+        "filename": "primes-pack-000001.zip",
+        "sha256": "06df4f7e1394f1c57cc6583fba4d8060a5a66f4f4771c14aeff6b9af8a28c9b3",
+        "sizeBytes": 3,
+        "firstLogicalBlock": 0,
+        "lastLogicalBlock": 299,
+        "blockSize": 300,
+        "blockCount": 300,
+        "generatorVersion": "1.0.0",
+        "wheelVersion": "1.0.0",
+        "publishedAt": "2026-11-04T22:56:36.034Z"
+      },
+      {
+        "packageId": 5,
+        "filename": "primes-pack-000005.zip",
+        "sha256": "9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+        "sizeBytes": 4,
+        "firstLogicalBlock": 1500,
+        "lastLogicalBlock": 1799,
+        "blockSize": 300,
+        "blockCount": 300,
+        "generatorVersion": "1.0.0",
+        "wheelVersion": "1.0.0",
+        "publishedAt": "2026-11-04T22:56:36.042Z"
+      }
+    ]
+  }
+}

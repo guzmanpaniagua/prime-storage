@@ -1,0 +1,1005 @@
+{
+  "phase": "PRODUCTS",
+  "packages": [
+    {
+      "packageId": 1,
+      "filename": "products-pack-000001.zip",
+      "sha256": "b852dd6b0325327ff349fa9578c4f5701dc9bcb5fcf863542c45e6de6bb699a8",
+      "sizeBytes": 642244,
+      "firstLogicalBlock": 0,
+      "lastLogicalBlock": 99,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:30:33.387Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 1,
+        "sourceJobId": "735d8bf2-dbd2-4d38-b8ee-a0e15ac2b01b"
+      }
+    },
+    {
+      "packageId": 2,
+      "filename": "products-pack-000002.zip",
+      "sha256": "8d1cc5062f345782b273f280fcd9d6a54325295fbbceb587cd5a63cdc4f719e8",
+      "sizeBytes": 642471,
+      "firstLogicalBlock": 100,
+      "lastLogicalBlock": 199,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:44:43.606Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 2,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 3,
+      "filename": "products-pack-000003.zip",
+      "sha256": "46457a138dada1a2f9c229dfa7fe28c70f0ef38bc8a004e474a58b3362d09755",
+      "sizeBytes": 642748,
+      "firstLogicalBlock": 200,
+      "lastLogicalBlock": 299,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:45:13.854Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 3,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 4,
+      "filename": "products-pack-000004.zip",
+      "sha256": "07ebdca21c0d57165a44b1eaa4646ea802905eadc0bc445b2989739f1e5e6c50",
+      "sizeBytes": 642646,
+      "firstLogicalBlock": 300,
+      "lastLogicalBlock": 399,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:52:29.298Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 4,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 5,
+      "filename": "products-pack-000005.zip",
+      "sha256": "68af0dcd9ab6c2b347a26945f40ffaf17217b0099570f359407a7e0e9dcd0717",
+      "sizeBytes": 642446,
+      "firstLogicalBlock": 400,
+      "lastLogicalBlock": 499,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:52:55.257Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 5,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 6,
+      "filename": "products-pack-000006.zip",
+      "sha256": "efa968931e073bdcee7081632c7a443e5467ba6cb95b6c6dc464a806f277894d",
+      "sizeBytes": 643337,
+      "firstLogicalBlock": 500,
+      "lastLogicalBlock": 599,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:53:22.057Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 6,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 7,
+      "filename": "products-pack-000007.zip",
+      "sha256": "6b9acdc2aeed964ddfc3847c6dbc686f2b5c10b2e0cf39082f13aff885ebe252",
+      "sizeBytes": 642332,
+      "firstLogicalBlock": 600,
+      "lastLogicalBlock": 699,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:53:55.364Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 7,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 8,
+      "filename": "products-pack-000008.zip",
+      "sha256": "3d5b3d02fe0bdf862afa02a9f67a15d5633b7e00ed645b5f3038eaef696abf57",
+      "sizeBytes": 642364,
+      "firstLogicalBlock": 700,
+      "lastLogicalBlock": 799,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:54:24.243Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 8,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 9,
+      "filename": "products-pack-000009.zip",
+      "sha256": "18e9e3bd0a43834adba0141476f25e0b2205633241ef78d22332fae6d50be3cc",
+      "sizeBytes": 642629,
+      "firstLogicalBlock": 800,
+      "lastLogicalBlock": 899,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:54:57.319Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 9,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 10,
+      "filename": "products-pack-000010.zip",
+      "sha256": "20a5f14199e748ce1c77e89b12d5f31a1241a3e6462c7d88deb1a95825ee450d",
+      "sizeBytes": 642864,
+      "firstLogicalBlock": 900,
+      "lastLogicalBlock": 999,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:55:26.425Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 10,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 11,
+      "filename": "products-pack-000011.zip",
+      "sha256": "ee2e4195fc13948ed1205e8a84a9c692ca98aec2ae2831d83010826888d3a189",
+      "sizeBytes": 642763,
+      "firstLogicalBlock": 1000,
+      "lastLogicalBlock": 1099,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:55:56.567Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 11,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 12,
+      "filename": "products-pack-000012.zip",
+      "sha256": "0e7f164630b73eb0392bad0a936c3ea2fd876d56e120a50611fd15a48a63f9d1",
+      "sizeBytes": 642024,
+      "firstLogicalBlock": 1100,
+      "lastLogicalBlock": 1199,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:56:25.683Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 12,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 13,
+      "filename": "products-pack-000013.zip",
+      "sha256": "e067535c84fe0bf261be53d11ce40b883cf4f5aaa61f6edbc288c333f81a6e52",
+      "sizeBytes": 642867,
+      "firstLogicalBlock": 1200,
+      "lastLogicalBlock": 1299,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:57:02.496Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 13,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 14,
+      "filename": "products-pack-000014.zip",
+      "sha256": "ebd35a6b8622e68db42459784c75b0d94a9d3731a00d5b6a8d7d815a1237e35b",
+      "sizeBytes": 642487,
+      "firstLogicalBlock": 1300,
+      "lastLogicalBlock": 1399,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:57:38.184Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 14,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 15,
+      "filename": "products-pack-000015.zip",
+      "sha256": "71fee8c78c8037a64cb4df72b9f3aa4a8ebbd7a0703640c42681d9ae45346b67",
+      "sizeBytes": 642831,
+      "firstLogicalBlock": 1400,
+      "lastLogicalBlock": 1499,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:58:15.407Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 15,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 16,
+      "filename": "products-pack-000016.zip",
+      "sha256": "7eafa38bde029b5ea96e2b8c9c197975748dde12aa1fe6fe2135f90eee4b5657",
+      "sizeBytes": 642739,
+      "firstLogicalBlock": 1500,
+      "lastLogicalBlock": 1599,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:58:47.789Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 16,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 17,
+      "filename": "products-pack-000017.zip",
+      "sha256": "fe2674b0db8ee5872c89ce1104400e394480be2bbeab21bd2724dcb2c3448505",
+      "sizeBytes": 642553,
+      "firstLogicalBlock": 1600,
+      "lastLogicalBlock": 1699,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:59:19.145Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 17,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 18,
+      "filename": "products-pack-000018.zip",
+      "sha256": "37465f3f0aa16a1dfd10694cfa55f684071e3160371f76dec667519c014e1632",
+      "sizeBytes": 642897,
+      "firstLogicalBlock": 1700,
+      "lastLogicalBlock": 1799,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-02T23:59:55.143Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 18,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 19,
+      "filename": "products-pack-000019.zip",
+      "sha256": "4732bc64dbc5cb5e823006927f71acbaab38b491d4ea92ce62a68b6d3f774254",
+      "sizeBytes": 642501,
+      "firstLogicalBlock": 1800,
+      "lastLogicalBlock": 1899,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:00:26.181Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 19,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 20,
+      "filename": "products-pack-000020.zip",
+      "sha256": "ddffb399879d8a88b7415c5227e2df4066271b5a097df7ed5fa367f4b2904c6c",
+      "sizeBytes": 642570,
+      "firstLogicalBlock": 1900,
+      "lastLogicalBlock": 1999,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:01:04.513Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 20,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 21,
+      "filename": "products-pack-000021.zip",
+      "sha256": "eb6d88577158c3bdac89c84bb33d0d1f5370b19bc35745111dae81716a6d54d2",
+      "sizeBytes": 642505,
+      "firstLogicalBlock": 2000,
+      "lastLogicalBlock": 2099,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:01:37.270Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 21,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 22,
+      "filename": "products-pack-000022.zip",
+      "sha256": "0b0a76375a8e57a3d76df6945b0ab58b6ef2dd318ef0523fdf5012de7e39ebe7",
+      "sizeBytes": 642660,
+      "firstLogicalBlock": 2100,
+      "lastLogicalBlock": 2199,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:02:16.929Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 22,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 23,
+      "filename": "products-pack-000023.zip",
+      "sha256": "85deba63cae3684a5d36c11f11883a2a877a7970ba5679aeb93078c70d507271",
+      "sizeBytes": 642893,
+      "firstLogicalBlock": 2200,
+      "lastLogicalBlock": 2299,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:02:50.006Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 23,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 24,
+      "filename": "products-pack-000024.zip",
+      "sha256": "c91b62cba97e739e8bc02ce1d5669fefedb5a0e22e36a8f051ca25a545727592",
+      "sizeBytes": 642862,
+      "firstLogicalBlock": 2300,
+      "lastLogicalBlock": 2399,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:03:23.845Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 24,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 25,
+      "filename": "products-pack-000025.zip",
+      "sha256": "d4aee144e34147352f98e0a4ae553e988eb0a38252b9e68bb6ae62b38e11c8ac",
+      "sizeBytes": 642675,
+      "firstLogicalBlock": 2400,
+      "lastLogicalBlock": 2499,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:03:58.076Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 25,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 26,
+      "filename": "products-pack-000026.zip",
+      "sha256": "e51f3fe58d1e5aade33e7151ec1d5472eec7c44e8042df275a7ce6583b637d14",
+      "sizeBytes": 642846,
+      "firstLogicalBlock": 2500,
+      "lastLogicalBlock": 2599,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:04:32.973Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 26,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 27,
+      "filename": "products-pack-000027.zip",
+      "sha256": "7ad513828a341132c3d5d6a409d5e8de0c56ca351347cb1a5c3378388cd1f91d",
+      "sizeBytes": 642951,
+      "firstLogicalBlock": 2600,
+      "lastLogicalBlock": 2699,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:05:13.558Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 27,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 28,
+      "filename": "products-pack-000028.zip",
+      "sha256": "539c8b28db9ad5d4fbbd4cb5134b1f92972887d1fc79c57b0436d55d4fad8873",
+      "sizeBytes": 642579,
+      "firstLogicalBlock": 2700,
+      "lastLogicalBlock": 2799,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:05:48.934Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 28,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 29,
+      "filename": "products-pack-000029.zip",
+      "sha256": "a23c6c0d792eef0cd11eb6784bd332e189df4cc966036c4ecbd29db737f6d04f",
+      "sizeBytes": 642357,
+      "firstLogicalBlock": 2800,
+      "lastLogicalBlock": 2899,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:06:23.970Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 29,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 30,
+      "filename": "products-pack-000030.zip",
+      "sha256": "2d939915645ee1e111768cf3dc889e228fc429a5e3073ce32e00176cc3772cd5",
+      "sizeBytes": 642070,
+      "firstLogicalBlock": 2900,
+      "lastLogicalBlock": 2999,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:07:08.091Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 30,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 31,
+      "filename": "products-pack-000031.zip",
+      "sha256": "69dd6848b981d872572e0bb0cbd16c6d9abc5365a4db35d833ac45d98d4d0b6b",
+      "sizeBytes": 642710,
+      "firstLogicalBlock": 3000,
+      "lastLogicalBlock": 3099,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:07:43.258Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 31,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 32,
+      "filename": "products-pack-000032.zip",
+      "sha256": "6eb777bced66c7f1c50d76393b2884493f1c8d2c71c6d46ed37d398061b096b5",
+      "sizeBytes": 643232,
+      "firstLogicalBlock": 3100,
+      "lastLogicalBlock": 3199,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:08:26.017Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 32,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 33,
+      "filename": "products-pack-000033.zip",
+      "sha256": "8f6b1beb408ce4472a819f952c16ab699b1d1ab0f1bbcb3e43301f7bcb00a968",
+      "sizeBytes": 642604,
+      "firstLogicalBlock": 3200,
+      "lastLogicalBlock": 3299,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:09:02.084Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 33,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 34,
+      "filename": "products-pack-000034.zip",
+      "sha256": "cd7b4ffe51884a3ca58359969e14ec62164c9551eca00f7c2a6687083e69629c",
+      "sizeBytes": 642688,
+      "firstLogicalBlock": 3300,
+      "lastLogicalBlock": 3399,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:09:46.050Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 34,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 35,
+      "filename": "products-pack-000035.zip",
+      "sha256": "e9793458225df9e22f6fa8b520759e04825221372d6f1f08aa44c92095dc5caa",
+      "sizeBytes": 643317,
+      "firstLogicalBlock": 3400,
+      "lastLogicalBlock": 3499,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:10:30.472Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 35,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 36,
+      "filename": "products-pack-000036.zip",
+      "sha256": "3a3f626d3ea0642f5c9c4532f96e63c6f4628fa5c62b328e7eeecd4494d666a4",
+      "sizeBytes": 642566,
+      "firstLogicalBlock": 3500,
+      "lastLogicalBlock": 3599,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:11:08.852Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 36,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 37,
+      "filename": "products-pack-000037.zip",
+      "sha256": "386b0e9a973a6dc45d0d8a512f2169849f6315c46e9907b5bda0057a9c184aea",
+      "sizeBytes": 643257,
+      "firstLogicalBlock": 3600,
+      "lastLogicalBlock": 3699,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:11:49.555Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 37,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 38,
+      "filename": "products-pack-000038.zip",
+      "sha256": "c911660c53ffdc7a0ae191ee2c68e1bd0118806ec7844cf92024ec5a1bc57d9e",
+      "sizeBytes": 641896,
+      "firstLogicalBlock": 3700,
+      "lastLogicalBlock": 3799,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:12:28.170Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 38,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 39,
+      "filename": "products-pack-000039.zip",
+      "sha256": "3c3d55a4f2892983d0da852e58b17d241fd22a19cd1887e033c2963f730efa20",
+      "sizeBytes": 642742,
+      "firstLogicalBlock": 3800,
+      "lastLogicalBlock": 3899,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:13:18.276Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 39,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 40,
+      "filename": "products-pack-000040.zip",
+      "sha256": "5411f54aab5723d280a6498a5309f42979bdd342da36926cd18f35b2ecd4ccfa",
+      "sizeBytes": 642355,
+      "firstLogicalBlock": 3900,
+      "lastLogicalBlock": 3999,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:13:57.263Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 40,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 41,
+      "filename": "products-pack-000041.zip",
+      "sha256": "3e124b1ec7a62c428e8b6aadfdef77bfcef2ad70ce3aa7fcf7a1a47f9d2b5ee6",
+      "sizeBytes": 641655,
+      "firstLogicalBlock": 4000,
+      "lastLogicalBlock": 4099,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:14:36.076Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 41,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 42,
+      "filename": "products-pack-000042.zip",
+      "sha256": "09810bab19b6f08189c0218254c5326564ed194ec44d9ea5b85de6ff7e64f7d5",
+      "sizeBytes": 643392,
+      "firstLogicalBlock": 4100,
+      "lastLogicalBlock": 4199,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:15:22.249Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 42,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 43,
+      "filename": "products-pack-000043.zip",
+      "sha256": "84984c6c4ab4c332717474224652fac83297f92a7e81da99986df8ceedb7ab6e",
+      "sizeBytes": 642910,
+      "firstLogicalBlock": 4200,
+      "lastLogicalBlock": 4299,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:16:18.276Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 43,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 44,
+      "filename": "products-pack-000044.zip",
+      "sha256": "7279fec524ec8db14a5fa073c5efd05bfe350bdfe6223c72708a4e566ba1a409",
+      "sizeBytes": 642264,
+      "firstLogicalBlock": 4300,
+      "lastLogicalBlock": 4399,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:17:03.162Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 44,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 45,
+      "filename": "products-pack-000045.zip",
+      "sha256": "47c5587302c07037cb46c358ebce5f8222dbe42388110e93fbd42aa60ed1a5f6",
+      "sizeBytes": 643040,
+      "firstLogicalBlock": 4400,
+      "lastLogicalBlock": 4499,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:17:48.571Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 45,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 46,
+      "filename": "products-pack-000046.zip",
+      "sha256": "21685ef08764402d299a95138e6e2c7e0f2c6010b1cbe9240a011bf05a49f216",
+      "sizeBytes": 641876,
+      "firstLogicalBlock": 4500,
+      "lastLogicalBlock": 4599,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:18:38.432Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 46,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 47,
+      "filename": "products-pack-000047.zip",
+      "sha256": "4d1de757bb6d9f0ff3616ae705f1c6456f6ee2599b9949315cfc6c9f2296eed2",
+      "sizeBytes": 642104,
+      "firstLogicalBlock": 4600,
+      "lastLogicalBlock": 4699,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:19:25.920Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 47,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 48,
+      "filename": "products-pack-000048.zip",
+      "sha256": "3dc3da479c771ed10229867565f28f1f761dc8f9fca71d2ab44528d19963290b",
+      "sizeBytes": 644073,
+      "firstLogicalBlock": 4700,
+      "lastLogicalBlock": 4799,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:20:05.829Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 48,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 49,
+      "filename": "products-pack-000049.zip",
+      "sha256": "1c776f4c046d6fcd3d25029108e9e88af5555e7cfccad370b9e9212f52393d05",
+      "sizeBytes": 643249,
+      "firstLogicalBlock": 4800,
+      "lastLogicalBlock": 4899,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:20:47.548Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 49,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    },
+    {
+      "packageId": 50,
+      "filename": "products-pack-000050.zip",
+      "sha256": "457aad6683374d53a576f7834a6ad0e677fbb414593b89e5f09aa3f9569de8c5",
+      "sizeBytes": 642304,
+      "firstLogicalBlock": 4900,
+      "lastLogicalBlock": 4999,
+      "blockSize": 30030,
+      "blockCount": 100,
+      "generatorVersion": "1.0.0",
+      "wheelVersion": "primorial-13-v1",
+      "publishedAt": "2026-11-03T00:21:27.222Z",
+      "products": {
+        "strategyVersion": "products-package-v1",
+        "taskContractVersion": "prime-product-task-v1",
+        "validatorVersion": "prime-product-validator-v1",
+        "sourcePackageId": 50,
+        "sourceJobId": "67879907-a359-4f09-8796-a1c0f4b2c0a8"
+      }
+    }
+  ]
+}
