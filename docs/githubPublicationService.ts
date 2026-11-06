@@ -4,7 +4,7 @@ import type { PhaseAuditEntry, PhaseType, ProjectPhase, PublishIndex, PublishInd
 import { PHASE_SEQUENCE, phaseFolder } from '../models/packageTypes.js';
 import type { CampaignCheckpointPointer, CampaignCheckpointSnapshot, GitHubCheckpointFile } from '../models/checkpointTypes.js';
 import { WHEEL_SIZES } from '../config/primorials.js';
-import { GithubArtifactStorage, GithubProjectStateStore, GithubPublishIndexStore, ProjectStateError, PublishIndexError, phaseIndexFromStore, publishedPackageFromStore } from 'prime-storage';
+import { CampaignCheckpointError, GithubArtifactStorage, GithubCampaignCheckpointStore, GithubProjectStateStore, GithubPublishIndexStore, ProjectStateError, PublishIndexError, phaseIndexFromStore, publishedPackageFromStore } from 'prime-storage';
 import type { PublishPackageInput } from 'prime-storage';
 
 type GitHubOptions = {
@@ -106,6 +106,7 @@ export class GitHubPublicationService {
   private readonly fetchImpl: typeof fetch;
   private readonly publishIndexStore: GithubPublishIndexStore | null;
   private readonly projectStateStore: GithubProjectStateStore | null;
+  private readonly checkpointStore: GithubCampaignCheckpointStore | null;
 
   constructor(private readonly options: GitHubOptions) {
     this.fetchImpl = options.fetchImpl ?? fetch;
@@ -119,6 +120,14 @@ export class GitHubPublicationService {
       : null);
     this.projectStateStore = options.owner && options.repository && options.token
       ? new GithubProjectStateStore(
+          new GithubArtifactStorage(
+            { owner: options.owner, repository: options.repository, branch: options.branch, token: options.token },
+            this.fetchImpl
+          )
+        )
+      : null;
+    this.checkpointStore = options.owner && options.repository && options.token
+      ? new GithubCampaignCheckpointStore(
           new GithubArtifactStorage(
             { owner: options.owner, repository: options.repository, branch: options.branch, token: options.token },
             this.fetchImpl
@@ -354,63 +363,26 @@ export class GitHubPublicationService {
   }
 
   async getCampaignCheckpoint(campaignId: string): Promise<{ pointer: CampaignCheckpointPointer; snapshot: CampaignCheckpointSnapshot }> {
-    const root = campaignRoot(campaignId);
-    const pointerText = await this.readFile(`${root}/state/latest.json`);
-    if (!pointerText) throw new ApiError(404, 'CHECKPOINT_NOT_FOUND', 'La campaña no tiene un checkpoint vigente en GitHub.');
-    let pointer: unknown;
-    try { pointer = JSON.parse(pointerText) as unknown; } catch {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El puntero latest del checkpoint no contiene JSON válido.');
-    }
-    if (!isRecord(pointer) || pointer.schemaVersion !== '1.0.0' || pointer.campaignId !== campaignId
-      || !Number.isSafeInteger(pointer.sequence) || (pointer.sequence as number) < 1
-      || pointer.snapshotPath !== `${root}/state/snapshots/checkpoint-${String(pointer.sequence).padStart(6, '0')}.json`
-      || !isSha256(pointer.snapshotSha256) || !Number.isSafeInteger(pointer.lastPublishedPackageId)
-      || !Number.isSafeInteger(pointer.lastPublishedLogicalBlock) || !Number.isSafeInteger(pointer.nextLogicalBlockToPublish)
-      || typeof pointer.jobId !== 'string' || typeof pointer.jobType !== 'string') {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El puntero latest del checkpoint incumple el contrato.');
-    }
-    const snapshotText = await this.readRawTextFile(pointer.snapshotPath as string);
-    if (!snapshotText || createHash('sha256').update(snapshotText).digest('hex') !== pointer.snapshotSha256) {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_HASH_MISMATCH', 'El snapshot no coincide con el SHA-256 del puntero latest.');
-    }
-    let snapshot: unknown;
-    try { snapshot = JSON.parse(snapshotText) as unknown; } catch {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El snapshot no contiene JSON válido.');
-    }
-    if (!isRecord(snapshot) || snapshot.schemaVersion !== '1.0.0' || snapshot.kind !== 'campaign-checkpoint'
-      || snapshot.campaignId !== campaignId || snapshot.sequence !== pointer.sequence
-      || snapshot.jobId !== pointer.jobId || snapshot.jobType !== pointer.jobType
-      || !isRecord(snapshot.jobState) || !isPublishIndex(snapshot.packageIndex, snapshot.phase as PhaseType)
-      || !isRecord(snapshot.artifact) || typeof snapshot.artifact.path !== 'string'
-      || !isSha256(snapshot.artifact.sha256)
-      || !Number.isSafeInteger(snapshot.artifact.sizeBytes) || (snapshot.artifact.sizeBytes as number) < 1) {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El snapshot de campaña incumple el contrato o sus referencias.');
-    }
-    const typedPointer = pointer as unknown as CampaignCheckpointPointer;
-    const typedSnapshot = snapshot as unknown as CampaignCheckpointSnapshot;
-    if (typedSnapshot.lastPublishedPackageId !== typedPointer.lastPublishedPackageId
-      || typedSnapshot.lastPublishedLogicalBlock !== typedPointer.lastPublishedLogicalBlock
-      || typedSnapshot.nextLogicalBlockToPublish !== typedPointer.nextLogicalBlockToPublish) {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'Los cursores del snapshot no coinciden con latest.');
-    }
-    if (typedSnapshot.artifact.kind === 'RECOVERY_RESULTS_ARCHIVE') {
-      if (!typedSnapshot.artifact.path.startsWith(`${root}/recovery/`)) {
-        throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El bundle de recuperación debe estar dentro de la carpeta de su campaña.');
+    if (!this.checkpointStore) throw new ApiError(503, 'GITHUB_NOT_CONFIGURED', 'El servicio de GitHub no está configurado.');
+    let result;
+    try {
+      result = await this.checkpointStore.getCheckpoint(campaignId);
+    } catch (error) {
+      if (error instanceof CampaignCheckpointError) {
+        if (error.code === 'CHECKPOINT_HASH_MISMATCH') {
+          throw new ApiError(502, 'GITHUB_CHECKPOINT_HASH_MISMATCH', 'El snapshot no coincide con el SHA-256 del puntero latest.');
+        }
+        throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El checkpoint de campaña incumple el contrato o sus referencias.');
       }
-    } else if (typedSnapshot.artifact.kind === 'PUBLISHED_PACKAGE') {
-      const packageEntry = typedSnapshot.packageIndex.packages.find((entry) => entry.packageId === typedSnapshot.artifact.packageId);
-      if (!packageEntry || typedSnapshot.artifact.path !== `${phaseFolder(typedSnapshot.phase)}/${packageEntry.filename}`
-        || typedSnapshot.artifact.sha256 !== packageEntry.sha256 || typedSnapshot.artifact.sizeBytes !== packageEntry.sizeBytes) {
-        throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El ZIP referenciado no coincide con el índice de paquetes.');
-      }
-    } else {
-      throw new ApiError(502, 'GITHUB_CHECKPOINT_INVALID', 'El tipo de artefacto del checkpoint no está soportado.');
+      throw error;
     }
-    const remoteIndex = await this.getPhaseIndex(typedSnapshot.phase);
-    if (JSON.stringify(remoteIndex) !== JSON.stringify(typedSnapshot.packageIndex)) {
+    if (!result) throw new ApiError(404, 'CHECKPOINT_NOT_FOUND', 'La campaña no tiene un checkpoint vigente en GitHub.');
+    const { pointer, snapshot } = result;
+    const remoteIndex = await this.getPhaseIndex(snapshot.phase);
+    if (JSON.stringify(remoteIndex) !== JSON.stringify(snapshot.packageIndex)) {
       throw new ApiError(502, 'GITHUB_CHECKPOINT_INDEX_MISMATCH', 'El índice de paquetes remoto no coincide con el snapshot de campaña.');
     }
-    return { pointer: typedPointer, snapshot: typedSnapshot };
+    return { pointer, snapshot };
   }
 
   async getCampaignArchive(campaignId: string): Promise<{ bytes: Uint8Array; snapshot: CampaignCheckpointSnapshot }> {

@@ -55,3 +55,16 @@ export type {
 export type { ProjectStateStore } from "./usecases/project-state/project-state-store.js";
 export { LocalProjectStateStore } from "./usecases/project-state/local-project-state-store.js";
 export { GithubProjectStateStore } from "./usecases/project-state/github-project-state-store.js";
+export type {
+  CampaignArtifactKind,
+  CampaignArtifactReference,
+  CampaignCheckpointPointer,
+  CampaignCheckpointSnapshot,
+} from "./usecases/campaign-checkpoints/campaign-checkpoint-types.js";
+export type { CampaignCheckpointStore } from "./usecases/campaign-checkpoints/campaign-checkpoint-store.js";
+export { CampaignCheckpointError } from "./usecases/campaign-checkpoints/campaign-checkpoint-error.js";
+export type {
+  CampaignCheckpointErrorCode,
+} from "./usecases/campaign-checkpoints/campaign-checkpoint-error.js";
+export { LocalCampaignCheckpointStore } from "./usecases/campaign-checkpoints/local-campaign-checkpoint-store.js";
+export { GithubCampaignCheckpointStore } from "./usecases/campaign-checkpoints/github-campaign-checkpoint-store.js";
