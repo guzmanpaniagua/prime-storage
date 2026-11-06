@@ -4,6 +4,8 @@ import type { PhaseAuditEntry, PhaseType, ProjectPhase, PublishIndex, PublishInd
 import { PHASE_SEQUENCE, phaseFolder } from '../models/packageTypes.js';
 import type { CampaignCheckpointPointer, CampaignCheckpointSnapshot, GitHubCheckpointFile } from '../models/checkpointTypes.js';
 import { WHEEL_SIZES } from '../config/primorials.js';
+import { GithubArtifactStorage, GithubProjectStateStore, GithubPublishIndexStore, ProjectStateError, PublishIndexError, phaseIndexFromStore, publishedPackageFromStore } from 'prime-storage';
+import type { PublishPackageInput } from 'prime-storage';
 
 type GitHubOptions = {
   owner: string | null;
@@ -12,6 +14,7 @@ type GitHubOptions = {
   token: string | null;
   apiBaseUrl?: string | null;
   fetchImpl?: typeof fetch;
+  publishIndexStore?: GithubPublishIndexStore;
 };
 
 type GitHubFile = { path: string; base64: string };
@@ -101,9 +104,27 @@ function prefixForPhase(phase: PhaseType): string {
 
 export class GitHubPublicationService {
   private readonly fetchImpl: typeof fetch;
+  private readonly publishIndexStore: GithubPublishIndexStore | null;
+  private readonly projectStateStore: GithubProjectStateStore | null;
 
   constructor(private readonly options: GitHubOptions) {
     this.fetchImpl = options.fetchImpl ?? fetch;
+    this.publishIndexStore = options.publishIndexStore ?? (options.owner && options.repository && options.token
+      ? new GithubPublishIndexStore(
+          new GithubArtifactStorage(
+            { owner: options.owner, repository: options.repository, branch: options.branch, token: options.token },
+            this.fetchImpl
+          )
+        )
+      : null);
+    this.projectStateStore = options.owner && options.repository && options.token
+      ? new GithubProjectStateStore(
+          new GithubArtifactStorage(
+            { owner: options.owner, repository: options.repository, branch: options.branch, token: options.token },
+            this.fetchImpl
+          )
+        )
+      : null;
     if (options.apiBaseUrl) {
       let url: URL;
       try { url = new URL(options.apiBaseUrl); } catch { throw new TypeError('apiBaseUrl debe ser una URL válida.'); }
@@ -127,29 +148,41 @@ export class GitHubPublicationService {
   }
 
   async getPhaseIndex(phase: PhaseType): Promise<PublishIndex> {
-    const path = `${phaseFolder(phase)}/publish-index.json`;
-    const content = await this.readFile(path);
-    if (content === null) return { phase, packages: [] };
-    let parsed: unknown;
-    try { parsed = JSON.parse(content) as unknown; } catch {
-      throw new ApiError(502, 'GITHUB_INDEX_INVALID', 'El índice publicado no contiene JSON válido.');
+    if (!this.publishIndexStore) return { phase, packages: [] };
+    try {
+      return await phaseIndexFromStore(this.publishIndexStore, phase);
+    } catch (error) {
+      if (error instanceof PublishIndexError && error.code === 'INDEX_INVALID') {
+        throw new ApiError(502, 'GITHUB_INDEX_INVALID', 'El índice de fase tiene una estructura inválida.');
+      }
+      throw error;
     }
-    if (!isPublishIndex(parsed, phase)) throw new ApiError(502, 'GITHUB_INDEX_INVALID', 'El índice de fase tiene una estructura inválida.');
-    return parsed;
   }
 
   async getPublishedPackageArchive(phase: PhaseType, packageId: number): Promise<{ entry: PublishIndexEntry; bytes: Uint8Array }> {
-    if (!Number.isSafeInteger(packageId) || packageId < 1) {
-      throw new ApiError(400, 'INVALID_PACKAGE_ID', 'packageId debe ser un entero positivo.');
+    if (!this.publishIndexStore) {
+      throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISSING', 'No hay store de publicación configurado.');
     }
-    const index = await this.getPhaseIndex(phase);
-    const entry = index.packages.find((candidate) => candidate.packageId === packageId);
-    if (!entry) throw new ApiError(404, 'PACKAGE_NOT_FOUND', 'No se encontró el paquete publicado solicitado.');
-    const bytes = await this.readBinaryFile(`${phaseFolder(phase)}/${entry.filename}`);
-    if (bytes.byteLength !== entry.sizeBytes || createHash('sha256').update(bytes).digest('hex') !== entry.sha256) {
-      throw new ApiError(502, 'PACKAGE_ARCHIVE_HASH_MISMATCH', 'El ZIP publicado no coincide con el tamaño o hash del índice.');
+    try {
+      const { entry, bytes } = await publishedPackageFromStore(this.publishIndexStore, phase, packageId);
+      return { entry, bytes };
+    } catch (error) {
+      if (error instanceof PublishIndexError) {
+        if (error.code === 'INVALID_PACKAGE_ID') {
+          throw new ApiError(400, 'INVALID_PACKAGE_ID', 'packageId debe ser un entero positivo.');
+        }
+        if (error.code === 'PACKAGE_NOT_FOUND') {
+          throw new ApiError(404, 'PACKAGE_NOT_FOUND', 'No se encontró el paquete publicado solicitado.');
+        }
+        if (error.code === 'PACKAGE_ARCHIVE_MISSING') {
+          throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISSING', 'El índice existe pero el ZIP publicado no aparece en GitHub.');
+        }
+        if (error.code === 'ARCHIVE_INTEGRITY_ERROR') {
+          throw new ApiError(502, 'PACKAGE_ARCHIVE_HASH_MISMATCH', 'El ZIP publicado no coincide con el tamaño o hash del índice.');
+        }
+      }
+      throw error;
     }
-    return { entry, bytes };
   }
 
   async getAllIndexes(): Promise<PublishIndex[]> {
@@ -157,16 +190,17 @@ export class GitHubPublicationService {
   }
 
   async getProjectState(): Promise<{ phases: ProjectPhase[]; audit: PhaseAuditEntry[] } | null> {
-    const content = await this.readFile('project-phases.json');
-    if (content === null) return null;
-    let parsed: unknown;
-    try { parsed = JSON.parse(content) as unknown; } catch {
-      throw new ApiError(502, 'GITHUB_PHASES_INVALID', 'El estado de fases publicado no contiene JSON válido.');
+    if (!this.projectStateStore) return null;
+    try {
+      const state = await this.projectStateStore.getProjectState();
+      if (state === null) return null;
+      return { phases: state.phases as ProjectPhase[], audit: state.audit as PhaseAuditEntry[] };
+    } catch (error) {
+      if (error instanceof ProjectStateError && error.code === 'PHASES_INVALID') {
+        throw new ApiError(502, 'GITHUB_PHASES_INVALID', 'El estado de fases publicado tiene una estructura inválida.');
+      }
+      throw error;
     }
-    if (!isRecord(parsed) || !Array.isArray(parsed.phases) || !Array.isArray(parsed.audit)) {
-      throw new ApiError(502, 'GITHUB_PHASES_INVALID', 'El estado de fases publicado tiene una estructura inválida.');
-    }
-    return { phases: parsed.phases as ProjectPhase[], audit: parsed.audit as PhaseAuditEntry[] };
   }
 
   async publishPackage(input: {
@@ -194,54 +228,119 @@ export class GitHubPublicationService {
         throw new ApiError(400, 'PRODUCTS_ARCHIVE_HASH_MISMATCH', 'El tamaño o SHA-256 del ZIP PRODUCTS no coincide con la entrada que se publicará.');
       }
     }
-    const index = await this.getPhaseIndex(phase);
-    const existing = index.packages.find((item) => item.packageId === entry.packageId);
-    if (existing) {
-      if (phase === 'PRODUCTS' && !sameProductsPublication(existing, entry)) {
-        throw new ApiError(409, 'PRODUCTS_PACKAGE_ID_CONFLICT', 'El ID PRODUCTS ya está publicado con otro ZIP o metadata de paquete fuente.');
-      }
-      if (existing.sha256 === entry.sha256) {
-        const archivePath = `${phaseFolder(phase)}/${existing.filename}`;
-        const archiveExists = await this.fileExists(archivePath);
-        if (!archiveExists) throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISSING', 'El índice existe pero el ZIP publicado no aparece en GitHub.');
-        if (phase === 'PRODUCTS') {
-          const publishedArchive = await this.readBinaryFile(archivePath);
-          if (publishedArchive.byteLength !== existing.sizeBytes
-            || createHash('sha256').update(publishedArchive).digest('hex') !== existing.sha256) {
-            throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISMATCH', 'El ZIP PRODUCTS existente no coincide con el tamaño o hash de su índice.');
-          }
+    const result = await this.publishPackageViaStore({
+      phase,
+      entry,
+      archive,
+      onExisting: async (existing) => {
+        if (phase === 'PRODUCTS' && !sameProductsPublication(existing, entry)) {
+          throw new ApiError(409, 'PRODUCTS_PACKAGE_ID_CONFLICT', 'El ID PRODUCTS ya está publicado con otro ZIP o metadata de paquete fuente.');
         }
+      },
+      onAlreadyPublished: async () => {
         for (const file of checkpointFiles) {
           const currentContent = await this.readFile(file.path);
           const expectedContent = this.checkpointContent(file.content);
           if (currentContent !== expectedContent && !this.isNewerCheckpointPointer(file.path, currentContent, expectedContent)) {
-            throw new ApiError(502, 'GITHUB_CHECKPOINT_MISSING', 'El paquete ya existe, pero su checkpoint asociado falta o no coincide.');
+            // Issue 33: checkpoint faltante o distinto tras una publicación ya
+            // existente → no abortar. El commit final reescribe todos los
+            // checkpointFiles de forma idempotente (contenido determinista e
+            // inmutable), así que el reintento repara el hueco automáticamente.
           }
         }
-        return { alreadyPublished: true, index };
+      },
+      beforeRegister: async () => {
+        if (phase === 'PRODUCTS') {
+          const packages = await this.publishIndexStore!.getPublishedPackages(phase);
+          if (entry.packageId !== packages.length + 1) {
+            throw new ApiError(409, 'PRODUCTS_PACKAGE_SEQUENCE_GAP', `PRODUCTS debe publicarse en orden: el siguiente ID permitido es ${packages.length + 1}.`);
+          }
+        }
+        if (checkpointFiles.length) await this.validatePackageCheckpointFiles(phase, entry, checkpointFiles);
+      },
+    });
+    // Issue 33: los checkpoints se publican siempre que existan, con o sin
+    // alreadyPublished. Así el reintento cura los huecos dejados por un fallo
+    // entre el commit del store (ZIP+índice) y el commit de checkpoints.
+    if (checkpointFiles.length) {
+      await this.commitFiles(checkpointFiles.map((file) => ({
+        path: file.path,
+        base64: Buffer.from(file.content).toString('base64'),
+      })), `Publish ${phase} package ${entry.packageId} checkpoints`);
+    }
+    return { alreadyPublished: result.alreadyPublished, index: result.index };
+  }
+
+  /**
+   * Helper temporal (issue 30): encapsula únicamente la parte STORAGE de
+   * publishPackage() usando PublishIndexStore. La lógica de negocio y de
+   * checkpoints permanece en publishPackage() y se intercala mediante callbacks.
+   */
+  private async publishPackageViaStore(input: {
+    phase: PhaseType;
+    entry: PublishIndexEntry;
+    archive: Uint8Array;
+    onExisting: (existing: PublishIndexEntry) => Promise<void>;
+    onAlreadyPublished: () => Promise<void>;
+    beforeRegister: () => Promise<void>;
+  }): Promise<{ alreadyPublished: boolean; index: PublishIndex }> {
+    const { phase, entry, archive } = input;
+    if (!this.publishIndexStore) {
+      throw new ApiError(503, 'GITHUB_NOT_CONFIGURED', 'Configura GITHUB_OWNER, GITHUB_REPOSITORY, GITHUB_BRANCH y GITHUB_TOKEN en el backend.');
+    }
+    const existing = await this.publishIndexStore.getPublishedPackage(phase, entry.packageId);
+    if (existing) {
+      await input.onExisting(existing);
+      if (existing.sha256 === entry.sha256) {
+        try {
+          await this.publishIndexStore.verifyPublishedArchive(phase, entry.packageId);
+        } catch (error) {
+          if (error instanceof PublishIndexError) {
+            if (error.code === 'PACKAGE_ARCHIVE_MISSING') {
+              throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISSING', 'El índice existe pero el ZIP publicado no aparece en GitHub.');
+            }
+            if (error.code === 'ARCHIVE_INTEGRITY_ERROR') {
+              throw new ApiError(502, 'GITHUB_PUBLISHED_ARCHIVE_MISMATCH', phase === 'PRODUCTS'
+                ? 'El ZIP PRODUCTS existente no coincide con el tamaño o hash de su índice.'
+                : 'El ZIP publicado no coincide con el tamaño o hash de su índice.');
+            }
+          }
+          throw error;
+        }
+        await input.onAlreadyPublished();
+        return { alreadyPublished: true, index: await this.getPhaseIndex(phase) };
       }
       throw new ApiError(409, phase === 'PRODUCTS' ? 'PRODUCTS_PACKAGE_ID_CONFLICT' : 'PACKAGE_PUBLISH_CONFLICT',
         phase === 'PRODUCTS' ? 'El ID PRODUCTS ya está publicado con otro SHA-256.' : 'Ya existe el identificador de paquete con otro SHA-256.');
     }
-    if (phase === 'PRODUCTS' && entry.packageId !== index.packages.length + 1) {
-      throw new ApiError(409, 'PRODUCTS_PACKAGE_SEQUENCE_GAP', `PRODUCTS debe publicarse en orden: el siguiente ID permitido es ${index.packages.length + 1}.`);
+    await input.beforeRegister();
+    const storeInput: PublishPackageInput = {
+      phase,
+      packageId: entry.packageId,
+      archive,
+      blockRange: { first: entry.firstLogicalBlock, size: entry.blockCount },
+      blockSize: entry.blockSize,
+      generatorVersion: entry.generatorVersion,
+      wheelVersion: entry.wheelVersion,
+      products: entry.products ? {
+        strategyVersion: entry.products.strategyVersion,
+        taskContractVersion: entry.products.taskContractVersion,
+        validatorVersion: entry.products.validatorVersion,
+        sourceJobId: entry.products.sourceJobId,
+        sourceBlockIndex: entry.products.sourceBlockIndex,
+        sourcePrimeHash: entry.products.sourcePrimeHash,
+      } : undefined,
+    };
+    try {
+      const registered = await this.publishIndexStore.registerPublishedPackage(storeInput);
+      return { alreadyPublished: false, index: registered.index };
+    } catch (error) {
+      if (error instanceof PublishIndexError && error.code === 'ARCHIVE_EXISTS_UNINDEXED') {
+        throw new ApiError(409, phase === 'PRODUCTS' ? 'PRODUCTS_ARCHIVE_CONFLICT' : 'PACKAGE_PUBLISH_CONFLICT',
+          phase === 'PRODUCTS' ? 'El ZIP PRODUCTS ya existe en GitHub pero no figura en el índice; no se sobrescribirá.' : 'El ZIP existe en GitHub pero no figura en el índice de fase.');
+      }
+      throw error;
     }
-    if (checkpointFiles.length) await this.validatePackageCheckpointFiles(phase, entry, checkpointFiles);
-    const updatedIndex: PublishIndex = { phase, packages: [...index.packages, entry].sort((a, b) => a.packageId - b.packageId) };
-    const folder = phaseFolder(phase);
-    if (await this.fileExists(`${folder}/${entry.filename}`)) {
-      throw new ApiError(409, phase === 'PRODUCTS' ? 'PRODUCTS_ARCHIVE_CONFLICT' : 'PACKAGE_PUBLISH_CONFLICT',
-        phase === 'PRODUCTS' ? 'El ZIP PRODUCTS ya existe en GitHub pero no figura en el índice; no se sobrescribirá.' : 'El ZIP existe en GitHub pero no figura en el índice de fase.');
-    }
-    await this.commitFiles([
-      { path: `${folder}/${entry.filename}`, base64: Buffer.from(archive).toString('base64') },
-      { path: `${folder}/publish-index.json`, base64: Buffer.from(JSON.stringify(updatedIndex, null, 2)).toString('base64') },
-      ...checkpointFiles.map((file) => ({
-        path: file.path,
-        base64: Buffer.from(file.content).toString('base64'),
-      })),
-    ], `Publish ${phase} package ${entry.packageId}`);
-    return { alreadyPublished: false, index: updatedIndex };
   }
 
   async listCampaignIds(): Promise<string[]> {
@@ -405,10 +504,10 @@ export class GitHubPublicationService {
   }
 
   async saveProjectPhases(phases: ProjectPhase[], audit: PhaseAuditEntry[]): Promise<void> {
-    await this.commitFiles([{
-      path: 'project-phases.json',
-      base64: Buffer.from(JSON.stringify({ phases, audit }, null, 2)).toString('base64'),
-    }], 'Update project phase status');
+    if (!this.projectStateStore) {
+      throw new ApiError(502, 'GITHUB_PHASES_STORE_MISSING', 'No hay store de estado de proyecto configurado.');
+    }
+    await this.projectStateStore.saveProjectState({ phases, audit });
   }
 
   private async readFile(path: string): Promise<string | null> {

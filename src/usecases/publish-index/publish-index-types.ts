@@ -26,10 +26,14 @@ export interface PublishIndexEntry {
   wheelVersion: string;
   publishedAt: string;
   products?: {
+    strategyVersion: string;
+    taskContractVersion: string;
+    validatorVersion: string;
     sourcePackageId: number;
     sourceJobId: string;
-    sourceBlockIndex: number;
-    sourcePrimeHash: string;
+    /** Legacy fields kept so no information from the previous model is lost. */
+    sourceBlockIndex?: number;
+    sourcePrimeHash?: string;
   };
 }
 
@@ -38,12 +42,18 @@ export interface PublishPackageInput {
   packageId: number;
   archive: Uint8Array;
   blockRange: { first: number; size: number };
+  /** Optional explicit block size; independent of blockCount. */
+  blockSize?: number;
   generatorVersion: string;
   wheelVersion: string;
   products?: {
+    strategyVersion: string;
+    taskContractVersion: string;
+    validatorVersion: string;
     sourceJobId: string;
-    sourceBlockIndex: number;
-    sourcePrimeHash: string;
+    /** Legacy fields kept so no information from the previous model is lost. */
+    sourceBlockIndex?: number;
+    sourcePrimeHash?: string;
   };
 }
 

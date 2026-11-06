@@ -45,3 +45,13 @@ export { publishedPackageFromStore } from "./usecases/publish-index/published-pa
 export type {
   PublishedPackage,
 } from "./usecases/publish-index/published-package-adapter.js";
+export type {
+  ProjectState,
+} from "./usecases/project-state/project-state-types.js";
+export { ProjectStateError } from "./usecases/project-state/project-state-error.js";
+export type {
+  ProjectStateErrorCode,
+} from "./usecases/project-state/project-state-error.js";
+export type { ProjectStateStore } from "./usecases/project-state/project-state-store.js";
+export { LocalProjectStateStore } from "./usecases/project-state/local-project-state-store.js";
+export { GithubProjectStateStore } from "./usecases/project-state/github-project-state-store.js";

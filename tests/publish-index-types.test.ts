@@ -57,6 +57,9 @@ describe("publish-index types", () => {
       wheelVersion: "1.0.0",
       publishedAt: "2026-11-04T00:00:00.000Z",
       products: {
+        strategyVersion: "1.0.0",
+        taskContractVersion: "1.0.0",
+        validatorVersion: "1.0.0",
         sourcePackageId: 1,
         sourceJobId: "job-1",
         sourceBlockIndex: 0,
@@ -65,6 +68,28 @@ describe("publish-index types", () => {
     };
 
     expect(entry.products?.sourcePackageId).toBe(1);
+    expect(entry.products?.strategyVersion).toBe("1.0.0");
+    expect(entry.products?.taskContractVersion).toBe("1.0.0");
+    expect(entry.products?.validatorVersion).toBe("1.0.0");
+  });
+
+  it("allows blockSize independent of blockCount", () => {
+    const entry: PublishIndexEntry = {
+      packageId: 1,
+      filename: "primes-pack-000001.zip",
+      sha256: "f".repeat(64),
+      sizeBytes: 1024,
+      firstLogicalBlock: 0,
+      lastLogicalBlock: 99,
+      blockSize: 512,
+      blockCount: 100,
+      generatorVersion: "1.0.0",
+      wheelVersion: "1.0.0",
+      publishedAt: "2026-11-04T00:00:00.000Z",
+    };
+
+    expect(entry.blockSize).toBe(512);
+    expect(entry.blockCount).toBe(100);
   });
 
   it("models PublishPackageInput and PublishPackageResult", () => {
@@ -73,9 +98,13 @@ describe("publish-index types", () => {
       packageId: 1,
       archive: new Uint8Array([1, 2, 3]),
       blockRange: { first: 0, size: 300 },
+      blockSize: 512,
       generatorVersion: "1.0.0",
       wheelVersion: "1.0.0",
       products: {
+        strategyVersion: "1.0.0",
+        taskContractVersion: "1.0.0",
+        validatorVersion: "1.0.0",
         sourceJobId: "job-1",
         sourceBlockIndex: 0,
         sourcePrimeHash: "d".repeat(64),

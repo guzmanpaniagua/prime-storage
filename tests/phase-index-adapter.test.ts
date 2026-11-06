@@ -57,11 +57,11 @@ describe("phaseIndexFromStore (adaptador temporal, issue 23)", () => {
     }).storage.storageDir;
 
     const { writeFile, mkdir } = await import("node:fs/promises");
-    await mkdir(join(storageDir, "publish-index"), { recursive: true });
+    await mkdir(join(storageDir, "primes"), { recursive: true });
     await writeFile(
-      join(storageDir, "publish-index", "PRIMES.json"),
+      join(storageDir, "primes", "publish-index.json"),
       JSON.stringify({
-        reference: { id: "publish-index-PRIMES", path: "publish-index/PRIMES.json" },
+        reference: { id: "publish-index-PRIMES", path: "primes/publish-index.json" },
         metadata: { type: "publish-index-primes", version: "1.0.0" },
         contentType: "json",
         data: { phase: "PRIMES", packages: "not-an-array" },

@@ -42,17 +42,32 @@ export function sameEntry(
   // publishedAt se excluye deliberadamente: no participa en la igualdad.
 }
 
+export const PHASE_FOLDERS: Record<PhaseType, string> = {
+  PRIMES: "primes",
+  PRODUCTS: "products",
+  ANCHORS: "anchors",
+  ANCHOR_SIEVE: "sieves/anchor-sieve",
+  FACTORS: "factors",
+  SMALL_CERTIFICATES: "certificates/small",
+  SUCCESSIVE_SIEVES: "sieves/successive",
+  FINAL_CERTIFICATION: "certificates/final",
+};
+
+export function phaseFolder(phase: PhaseType): string {
+  return PHASE_FOLDERS[phase];
+}
+
 export function indexReference(phase: PhaseType) {
   return {
     id: `publish-index-${phase}`,
-    path: `publish-index/${phase}.json`,
+    path: `${phaseFolder(phase)}/publish-index.json`,
   };
 }
 
 export function archiveReference(phase: PhaseType, entry: PublishIndexEntry) {
   return {
     id: `publish-archive-${phase}-${entry.packageId}`,
-    path: `${phase}/${entry.filename}`,
+    path: `${phaseFolder(phase)}/${entry.filename}`,
   };
 }
 
@@ -88,7 +103,7 @@ export function buildEntry(input: PublishPackageInput): PublishIndexEntry {
     sizeBytes: input.archive.byteLength,
     firstLogicalBlock: input.blockRange.first,
     lastLogicalBlock,
-    blockSize: input.blockRange.size,
+    blockSize: input.blockSize ?? input.blockRange.size,
     blockCount: input.blockRange.size,
     generatorVersion: input.generatorVersion,
     wheelVersion: input.wheelVersion,
@@ -97,6 +112,9 @@ export function buildEntry(input: PublishPackageInput): PublishIndexEntry {
 
   if (input.products) {
     entry.products = {
+      strategyVersion: input.products.strategyVersion,
+      taskContractVersion: input.products.taskContractVersion,
+      validatorVersion: input.products.validatorVersion,
       sourcePackageId: input.packageId,
       sourceJobId: input.products.sourceJobId,
       sourceBlockIndex: input.products.sourceBlockIndex,
