@@ -11,6 +11,7 @@ export type {
   ArtifactMetadata,
   ArtifactReference,
 } from "./models/artifact.js";
+export type { ArtifactWrite } from "./contracts/artifact-storage.js";
 export type { StoredArtifact } from "./models/stored-artifact.js";
 export type { ArtifactDocument } from "./models/artifact-document.js";
 export type {

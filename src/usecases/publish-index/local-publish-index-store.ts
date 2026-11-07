@@ -3,8 +3,9 @@ import type { PublishIndexStore } from "./publish-index-store.js";
 import {
   loadArchive,
   loadIndex,
-  persistArchive,
-  persistIndex,
+  archiveReference,
+  indexReference,
+  persistWrites,
   sameEntry,
   buildEntry,
   validatePublishInput,
@@ -69,6 +70,13 @@ export class LocalPublishIndexStore implements PublishIndexStore {
 
     if (existing) {
       if (sameEntry(existing, incomingEntry)) {
+        if (input.additionalArtifacts?.length) {
+          await persistWrites(
+            this.storage,
+            input.additionalArtifacts,
+            `Repair package ${input.packageId} related artifacts in ${input.phase}`
+          );
+        }
         return { status: "already-published", entry: existing, index };
       }
       throw new PublishIndexError(
@@ -89,8 +97,23 @@ export class LocalPublishIndexStore implements PublishIndexStore {
         `Archive ${incomingEntry.filename} already exists in phase ${input.phase} but is not listed in the publish index.`
       );
     }
-    await persistArchive(this.storage, input.phase, incomingEntry, input.archive);
-    await persistIndex(this.storage, input.phase, updatedIndex);
+    await persistWrites(
+      this.storage,
+      [
+        {
+          reference: archiveReference(input.phase, incomingEntry),
+          data: input.archive,
+          metadata: { type: `publish-archive-${input.phase.toLowerCase()}`, version: "1.0.0" },
+        },
+        {
+          reference: indexReference(input.phase),
+          data: updatedIndex,
+          metadata: { type: `publish-index-${input.phase.toLowerCase()}`, version: "1.0.0" },
+        },
+        ...(input.additionalArtifacts ?? []),
+      ],
+      `Publish package ${input.packageId} in ${input.phase}`
+    );
 
     return { status: "registered", entry: incomingEntry, index: updatedIndex };
   }

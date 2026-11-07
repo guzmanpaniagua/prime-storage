@@ -66,6 +66,40 @@ describe("GithubClient.fileExists", () => {
   });
 });
 
+describe("GithubClient.verifyBranch and listDirectory", () => {
+  it("verifies the configured branch", async () => {
+    const { fetchImpl, calls } = createFetchRecorder((url) =>
+      url.endsWith("/git/ref/heads/main")
+        ? jsonResponse(200, { object: { sha: "main-sha" } })
+        : new Response(null, { status: 404 })
+    );
+    const client = makeClient(fetchImpl);
+
+    await expect(client.verifyBranch()).resolves.toBeUndefined();
+    expect(calls[0]?.url).toContain("/git/ref/heads/main");
+  });
+
+  it("lists directory entries and returns an empty list for a missing directory", async () => {
+    const { fetchImpl } = createFetchRecorder((url) => {
+      if (url.includes("/contents/campaigns")) {
+        return jsonResponse(200, [
+          { name: "campaign-a", type: "dir" },
+          { name: "state.json", type: "file" },
+          { name: "malformed" },
+        ]);
+      }
+      return new Response(null, { status: 404 });
+    });
+    const client = makeClient(fetchImpl);
+
+    await expect(client.listDirectory("campaigns")).resolves.toEqual([
+      { name: "campaign-a", type: "dir" },
+      { name: "state.json", type: "file" },
+    ]);
+    await expect(client.listDirectory("missing")).resolves.toEqual([]);
+  });
+});
+
 describe("GithubClient.commitFiles", () => {
   it("creates blobs, tree, commit and updates the branch reference", async () => {
     const { fetchImpl, calls } = createFetchRecorder((url, init) => {

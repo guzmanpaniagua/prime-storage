@@ -1,3 +1,5 @@
+import type { ArtifactWrite } from "../../contracts/artifact-storage.js";
+
 export type PhaseType =
   | "PRIMES"
   | "PRODUCTS"
@@ -55,6 +57,8 @@ export interface PublishPackageInput {
     sourceBlockIndex?: number;
     sourcePrimeHash?: string;
   };
+  /** Extra artifacts to include in the same publication operation (e.g. checkpoint state). */
+  additionalArtifacts?: ArtifactWrite[];
 }
 
 export interface PublishPackageResult {

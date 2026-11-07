@@ -8,6 +8,7 @@ export class GithubClient {
   private readonly branch: string;
   private readonly token: string;
   private readonly fetchImpl: typeof fetch;
+  private readonly apiBaseUrl?: string;
 
   constructor(
     config: GithubStorageConfig,
@@ -18,6 +19,7 @@ export class GithubClient {
     this.branch = config.branch;
     this.token = config.token;
     this.fetchImpl = fetchImpl;
+    this.apiBaseUrl = config.apiBaseUrl?.replace(/\/$/, "");
   }
 
   private isConfigured(): boolean {
@@ -38,9 +40,10 @@ export class GithubClient {
     }
     let response: Response;
     try {
-      const base = `https://api.github.com/repos/${encodeURIComponent(
-        this.owner
-      )}/${encodeURIComponent(this.repository)}`;
+      const base = this.apiBaseUrl
+        ?? `https://api.github.com/repos/${encodeURIComponent(
+          this.owner
+        )}/${encodeURIComponent(this.repository)}`;
       response = await this.fetchImpl(`${base}${path}`, {
         ...init,
         headers: {
@@ -107,6 +110,47 @@ export class GithubClient {
       );
     }
     return true;
+  }
+
+  async verifyBranch(): Promise<void> {
+    const response = await this.request(
+      `/git/ref/heads/${encodeURIComponent(this.branch)}`,
+      { method: "GET" }
+    );
+    if (!response.ok) {
+      throw await this.apiError(response, "Could not read the configured GitHub branch.");
+    }
+  }
+
+  async listDirectory(path: string): Promise<Array<{ name: string; type: string }>> {
+    const response = await this.request(
+      `/contents/${path}?ref=${encodeURIComponent(this.branch)}`,
+      { method: "GET" },
+      true
+    );
+    if (response.status === 404) return [];
+    if (!response.ok) {
+      throw await this.apiError(response, "Could not list the GitHub directory.");
+    }
+    const payload: unknown = await response.json();
+    if (!Array.isArray(payload)) {
+      throw new GithubStorageError(
+        502,
+        "GITHUB_DIRECTORY_INVALID",
+        "GitHub returned an unexpected directory listing."
+      );
+    }
+    return payload.flatMap((item) => {
+      if (
+        typeof item !== "object" || item === null
+        || typeof (item as { name?: unknown }).name !== "string"
+        || typeof (item as { type?: unknown }).type !== "string"
+      ) return [];
+      return [{
+        name: (item as { name: string }).name,
+        type: (item as { type: string }).type,
+      }];
+    });
   }
 
   async readFile(path: string): Promise<string | null> {

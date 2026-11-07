@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { isUint8Array } from "../../models/persisted-artifact-document.js";
-import type { ArtifactStorage } from "../../contracts/artifact-storage.js";
+import type { ArtifactStorage, ArtifactWrite } from "../../contracts/artifact-storage.js";
 import { PublishIndexError } from "./publish-index-error.js";
 import type {
   PhaseType,
@@ -171,6 +171,31 @@ export async function persistArchive(
     type: `publish-archive-${phase.toLowerCase()}`,
     version: "1.0.0",
   });
+}
+
+export async function persistWrites(
+  storage: ArtifactStorage,
+  writes: readonly ArtifactWrite[],
+  message: string
+): Promise<void> {
+  const paths = new Set<string>();
+  for (const { reference } of writes) {
+    if (paths.has(reference.path)) {
+      throw new PublishIndexError(
+        "DUPLICATE_ARTIFACT_PATH",
+        `A publication batch cannot write the same path more than once: ${reference.path}.`
+      );
+    }
+    paths.add(reference.path);
+  }
+
+  if (storage.saveManyAt) {
+    await storage.saveManyAt(writes, message);
+    return;
+  }
+  for (const write of writes) {
+    await storage.saveAt(write.reference, write.data, write.metadata);
+  }
 }
 
 export async function loadArchive(

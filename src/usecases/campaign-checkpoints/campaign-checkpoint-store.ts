@@ -1,6 +1,13 @@
-import type { CampaignCheckpointPointer, CampaignCheckpointSnapshot } from "./campaign-checkpoint-types.js";
+import type {
+  CampaignArtifactReference,
+  CampaignCheckpointPointer,
+  CampaignCheckpointSnapshot,
+} from "./campaign-checkpoint-types.js";
 
 export interface CampaignCheckpointStore {
+  /** Lists campaign directories available in the backing GitHub repository. */
+  listCampaignIds?(): Promise<string[]>;
+
   /**
    * Devuelve el puntero y snapshot vigentes de una campaña,
    * o `null` si la campaña no tiene checkpoint.
@@ -10,6 +17,9 @@ export interface CampaignCheckpointStore {
     pointer: CampaignCheckpointPointer;
     snapshot: CampaignCheckpointSnapshot;
   } | null>;
+
+  /** Loads and verifies the binary artifact referenced by a validated snapshot. */
+  getArtifact?(reference: CampaignArtifactReference): Promise<Uint8Array>;
 
   /**
    * Publica un checkpoint: artefacto inmutable + snapshot inmutable +

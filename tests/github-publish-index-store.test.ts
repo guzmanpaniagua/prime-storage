@@ -22,9 +22,10 @@ const config = {
  * - PATCH /git/refs/heads/<branch>  → actualiza la rama
  * - GET   /contents/<path>          → lectura de ficheros ya "almacenados"
  */
-function createMockFetch(): { fetchImpl: typeof fetch } {
+function createMockFetch(): { fetchImpl: typeof fetch; getCommitCount: () => number } {
   const storedFiles = new Map<string, string>();
   const blobContents = new Map<string, string>();
+  let commitCount = 0;
 
   const fetchImpl = (async (
     input: RequestInfo | URL,
@@ -80,6 +81,7 @@ function createMockFetch(): { fetchImpl: typeof fetch } {
     }
 
     if (method === "POST" && url.includes("/git/commits")) {
+      commitCount += 1;
       return new Response(JSON.stringify({ sha: "new-commit" }), { status: 201 });
     }
 
@@ -90,7 +92,7 @@ function createMockFetch(): { fetchImpl: typeof fetch } {
     return new Response(null, { status: 404 });
   }) as typeof fetch;
 
-  return { fetchImpl };
+  return { fetchImpl, getCommitCount: () => commitCount };
 }
 
 function makeInput(overrides?: Partial<PublishPackageInput>): PublishPackageInput {
@@ -107,7 +109,7 @@ function makeInput(overrides?: Partial<PublishPackageInput>): PublishPackageInpu
 
 describe("GithubPublishIndexStore", () => {
   it("registers a package and reads the index back", async () => {
-    const { fetchImpl } = createMockFetch();
+    const { fetchImpl, getCommitCount } = createMockFetch();
     const storage = new GithubArtifactStorage(config, fetchImpl);
     const store = new GithubPublishIndexStore(storage);
 
@@ -121,6 +123,29 @@ describe("GithubPublishIndexStore", () => {
     const packages = await store.getPublishedPackages("PRIMES");
     expect(packages).toHaveLength(1);
     expect(packages[0]?.packageId).toBe(1);
+    expect(getCommitCount()).toBe(1);
+  });
+
+  it("includes related checkpoint artifacts in the package commit", async () => {
+    const { fetchImpl, getCommitCount } = createMockFetch();
+    const storage = new GithubArtifactStorage(config, fetchImpl);
+    const store = new GithubPublishIndexStore(storage);
+    const checkpointRef = {
+      id: "campaign-latest",
+      path: "campaigns/camp-1/state/latest.json",
+    };
+
+    await store.registerPublishedPackage({
+      ...makeInput(),
+      additionalArtifacts: [{
+        reference: checkpointRef,
+        data: { sequence: 1 },
+        metadata: { type: "campaign-checkpoint-latest", version: "1.0.0" },
+      }],
+    });
+
+    expect(getCommitCount()).toBe(1);
+    await expect(storage.load(checkpointRef)).resolves.toEqual({ sequence: 1 });
   });
 
   it("reads a package by packageId", async () => {

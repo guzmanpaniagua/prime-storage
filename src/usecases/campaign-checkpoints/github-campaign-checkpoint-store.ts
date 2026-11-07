@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { GithubArtifactStorage } from "../../github/github-artifact-storage.js";
 import {
   artifactReference,
+  loadCampaignArtifact,
   buildPointer,
   checkpointSnapshotPath,
   parsePointer,
@@ -13,10 +14,12 @@ import {
   verifySnapshotHash,
   assertNewerSequence,
   assertImmutablePathsFree,
+  persistCheckpointWrites,
 } from "./campaign-checkpoint-core.js";
 import { CampaignCheckpointError } from "./campaign-checkpoint-error.js";
 import type { CampaignCheckpointStore } from "./campaign-checkpoint-store.js";
 import type {
+  CampaignArtifactReference,
   CampaignCheckpointPointer,
   CampaignCheckpointSnapshot,
 } from "./campaign-checkpoint-types.js";
@@ -29,6 +32,14 @@ import type {
  */
 export class GithubCampaignCheckpointStore implements CampaignCheckpointStore {
   constructor(private readonly storage: GithubArtifactStorage) {}
+
+  async listCampaignIds(): Promise<string[]> {
+    const entries = await this.storage.listDirectory("campaigns");
+    return entries
+      .filter((entry) => entry.type === "dir" && /^[a-z0-9][a-z0-9-]{0,100}$/.test(entry.name))
+      .map((entry) => entry.name)
+      .sort();
+  }
 
   async getCheckpoint(campaignId: string): Promise<{
     pointer: CampaignCheckpointPointer;
@@ -69,6 +80,10 @@ export class GithubCampaignCheckpointStore implements CampaignCheckpointStore {
     return { pointer, snapshot };
   }
 
+  async getArtifact(reference: CampaignArtifactReference): Promise<Uint8Array> {
+    return loadCampaignArtifact(this.storage, reference);
+  }
+
   async publishCheckpoint(input: {
     snapshot: CampaignCheckpointSnapshot;
     archive: Uint8Array;
@@ -107,18 +122,23 @@ export class GithubCampaignCheckpointStore implements CampaignCheckpointStore {
     }
     await assertImmutablePathsFree(this.storage, snapshotPath, archivePath);
 
-    await this.storage.saveAt(artifactReference(archivePath), archive, {
-      type: "campaign-artifact",
-      version: "1.0.0",
-    });
-    await this.storage.saveAt(snapshotReference(snapshot.campaignId, snapshot.sequence), snapshotContent, {
-      type: "campaign-checkpoint-snapshot",
-      version: "1.0.0",
-    });
-    await this.storage.saveAt(pointerReference(snapshot.campaignId), pointer, {
-      type: "campaign-checkpoint-latest",
-      version: "1.0.0",
-    });
+    await persistCheckpointWrites(this.storage, [
+      {
+        reference: artifactReference(archivePath),
+        data: archive,
+        metadata: { type: "campaign-artifact", version: "1.0.0" },
+      },
+      {
+        reference: snapshotReference(snapshot.campaignId, snapshot.sequence),
+        data: snapshotContent,
+        metadata: { type: "campaign-checkpoint-snapshot", version: "1.0.0" },
+      },
+      {
+        reference: pointerReference(snapshot.campaignId),
+        data: pointer,
+        metadata: { type: "campaign-checkpoint-latest", version: "1.0.0" },
+      },
+    ], `Publish checkpoint ${snapshot.campaignId} sequence ${snapshot.sequence}`);
     return { pointer, snapshotPath, snapshotSha256, alreadyPublished: false };
   }
 

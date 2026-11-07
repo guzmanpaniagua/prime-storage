@@ -62,9 +62,10 @@ function buildSnapshot(overrides: Partial<CampaignCheckpointSnapshot> = {}): Cam
  * Fetch simulado que emula el flujo de commits de la GitHub API
  * (mismo patrón que github-project-state-store.test.ts).
  */
-function createMockFetch(): { fetchImpl: typeof fetch } {
+function createMockFetch(): { fetchImpl: typeof fetch; getCommitCount: () => number } {
   const storedFiles = new Map<string, string>();
   const blobContents = new Map<string, string>();
+  let commitCount = 0;
 
   const fetchImpl = (async (
     input: RequestInfo | URL,
@@ -120,6 +121,7 @@ function createMockFetch(): { fetchImpl: typeof fetch } {
     }
 
     if (method === "POST" && url.includes("/git/commits")) {
+      commitCount += 1;
       return new Response(JSON.stringify({ sha: "new-commit" }), { status: 201 });
     }
 
@@ -130,7 +132,7 @@ function createMockFetch(): { fetchImpl: typeof fetch } {
     return new Response(null, { status: 404 });
   }) as typeof fetch;
 
-  return { fetchImpl };
+  return { fetchImpl, getCommitCount: () => commitCount };
 }
 
 describe("GithubCampaignCheckpointStore", () => {
@@ -143,7 +145,7 @@ describe("GithubCampaignCheckpointStore", () => {
   });
 
   it("publishCheckpoint publica y getCheckpoint lee el checkpoint", async () => {
-    const { fetchImpl } = createMockFetch();
+    const { fetchImpl, getCommitCount } = createMockFetch();
     const storage = new GithubArtifactStorage(config, fetchImpl);
     const store = new GithubCampaignCheckpointStore(storage);
 
@@ -163,6 +165,26 @@ describe("GithubCampaignCheckpointStore", () => {
     expect(pointer.snapshotSha256).toBe(result.snapshotSha256);
     expect(snapshot.campaignId).toBe("camp-gh");
     expect(snapshot.artifact.path).toBe(archivePath);
+    expect(getCommitCount()).toBe(1);
+    await expect(store.getArtifact(snapshot.artifact)).resolves.toEqual(archive);
+  });
+
+  it("getArtifact rechaza contenido que no coincide con el SHA-256 del snapshot", async () => {
+    const { fetchImpl } = createMockFetch();
+    const storage = new GithubArtifactStorage(config, fetchImpl);
+    const store = new GithubCampaignCheckpointStore(storage);
+    const snapshot = buildSnapshot();
+    await store.publishCheckpoint({ snapshot, archive, archivePath });
+    await storage.saveAt(
+      { id: `campaign-artifact-${archivePath}`, path: archivePath },
+      new Uint8Array([0, 0, 0]),
+      { type: "campaign-artifact", version: "1.0.0" }
+    );
+
+    await expect(store.getArtifact(snapshot.artifact)).rejects.toMatchObject({
+      name: "CampaignCheckpointError",
+      code: "CHECKPOINT_ARCHIVE_HASH_MISMATCH",
+    });
   });
 
   it("publishCheckpoint es idempotente con la misma secuencia y contenido", async () => {

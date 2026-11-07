@@ -3,6 +3,7 @@ import type {
   ArtifactContent,
   ArtifactMetadata,
   ArtifactReference,
+  ArtifactWrite,
   ArtifactStorage,
 } from "../contracts/artifact-storage.js";
 import type { ArtifactDocument } from "../models/artifact-document.js";
@@ -83,6 +84,31 @@ export class GithubArtifactStorage implements ArtifactStorage {
     return reference;
   }
 
+  async saveManyAt(
+    writes: readonly ArtifactWrite[],
+    message = "Save artifacts"
+  ): Promise<ArtifactReference[]> {
+    const paths = new Set<string>();
+    const files = writes.map(({ reference, data, metadata }) => {
+      if (paths.has(reference.path)) {
+        throw new GithubStorageError(
+          400,
+          "GITHUB_BATCH_DUPLICATE_PATH",
+          `A batch cannot write the same path more than once: ${reference.path}.`
+        );
+      }
+      paths.add(reference.path);
+      return {
+        path: reference.path,
+        base64: Buffer.from(this.serializeWrite(reference, data, metadata)).toString("base64"),
+      };
+    });
+    if (files.length === 0) return [];
+
+    await this.client.commitFiles(files, message);
+    return writes.map(({ reference }) => reference);
+  }
+
   async load(reference: ArtifactReference): Promise<ArtifactContent> {
     const document = await this.readAndValidateArtifact(reference);
     if (document.contentType === "binary") {
@@ -96,6 +122,14 @@ export class GithubArtifactStorage implements ArtifactStorage {
   ): Promise<ArtifactMetadata> {
     const document = await this.readAndValidateArtifact(reference);
     return document.metadata;
+  }
+
+  async verifyBranch(): Promise<void> {
+    await this.client.verifyBranch();
+  }
+
+  async listDirectory(path: string): Promise<Array<{ name: string; type: string }>> {
+    return this.client.listDirectory(path);
   }
 
   private async readAndValidateArtifact(
@@ -119,5 +153,22 @@ export class GithubArtifactStorage implements ArtifactStorage {
         `The artifact at path ${reference.path} is not a valid persisted artifact document.`
       );
     }
+  }
+
+  private serializeWrite(
+    reference: ArtifactReference,
+    data: ArtifactContent,
+    metadata: ArtifactMetadata
+  ): string {
+    const isBinary = isUint8Array(data);
+    const contentType: PersistedContentType = isBinary ? "binary" : "json";
+    const persistedData = isBinary ? encodeBinaryContent(data) : data;
+    const document: PersistedArtifactDocument = {
+      reference,
+      metadata,
+      contentType,
+      data: persistedData,
+    };
+    return serializePersistedDocument(document);
   }
 }

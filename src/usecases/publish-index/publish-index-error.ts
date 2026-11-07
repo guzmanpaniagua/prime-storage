@@ -6,6 +6,7 @@ export type PublishIndexErrorCode =
   | "PACKAGE_CONFLICT"
   | "ARCHIVE_INTEGRITY_ERROR"
   | "ARCHIVE_EXISTS_UNINDEXED"
+  | "DUPLICATE_ARTIFACT_PATH"
   | "INVALID_PACKAGE_ID";
 
 export class PublishIndexError extends Error {

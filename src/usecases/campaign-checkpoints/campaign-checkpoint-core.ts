@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { ArtifactReference, ArtifactStorage } from "../../contracts/artifact-storage.js";
+import type { ArtifactReference, ArtifactStorage, ArtifactWrite } from "../../contracts/artifact-storage.js";
 import { CampaignCheckpointError } from "./campaign-checkpoint-error.js";
 import type {
   CampaignArtifactReference,
@@ -41,6 +41,62 @@ export function snapshotReference(campaignId: string, sequence: number): Artifac
 /** Referencia física del artefacto (ZIP) del checkpoint. */
 export function artifactReference(archivePath: string): ArtifactReference {
   return { id: `campaign-artifact-${archivePath}`, path: archivePath };
+}
+
+export async function loadCampaignArtifact(
+  storage: ArtifactStorage,
+  reference: CampaignArtifactReference
+): Promise<Uint8Array> {
+  let content: unknown;
+  try {
+    content = await storage.load(artifactReference(reference.path));
+  } catch (error) {
+    const status = isRecord(error) ? error.status : undefined;
+    if (status !== undefined && status !== 404) throw error;
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_ARCHIVE_NOT_FOUND",
+      "No se encontró el artefacto asociado al checkpoint."
+    );
+  }
+
+  if (!(content instanceof Uint8Array)) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_ARCHIVE_INVALID",
+      "El artefacto asociado al checkpoint no es binario."
+    );
+  }
+  if (content.byteLength !== reference.sizeBytes || sha256Of(content) !== reference.sha256) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_ARCHIVE_HASH_MISMATCH",
+      "El artefacto no coincide con el tamaño o SHA-256 del checkpoint."
+    );
+  }
+  return content;
+}
+
+export async function persistCheckpointWrites(
+  storage: ArtifactStorage,
+  writes: readonly ArtifactWrite[],
+  message: string
+): Promise<void> {
+  const paths = new Set<string>();
+  for (const { reference } of writes) {
+    if (paths.has(reference.path)) {
+      throw new CampaignCheckpointError(
+        "CHECKPOINT_INVALID",
+        `A checkpoint batch cannot write the same path more than once: ${reference.path}.`
+      );
+    }
+    paths.add(reference.path);
+  }
+
+  if (storage.saveManyAt) {
+    await storage.saveManyAt(writes, message);
+    return;
+  }
+  for (const write of writes) {
+    await storage.saveAt(write.reference, write.data, write.metadata);
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

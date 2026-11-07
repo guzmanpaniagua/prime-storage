@@ -104,8 +104,16 @@ Both implementations satisfy the same `ArtifactStorage` contract:
 | --- | --- |
 | `save(data, metadata)` | Persists content, returns an `ArtifactReference` (`id`, `path`). |
 | `saveAt(reference, data, metadata)` | Persists content at an explicit reference. |
+| `saveManyAt(writes, message?)` | Persists multiple explicit references together when the backend supports a single commit. Local storage writes sequentially. |
 | `load(reference)` | Reads the stored content (JSON or `Uint8Array`). |
 | `getMetadata(reference)` | Reads the artifact metadata (`type`, `version`). |
+
+`GithubArtifactStorage.saveManyAt()` sends every file in one Git commit, so
+GitHub readers see the batch as one repository update. `LocalArtifactStorage`
+uses sequential file writes and does not guarantee rollback or atomicity if a
+write fails. Publication stores use the batch operation when available and
+retain a sequential fallback for compatible custom `ArtifactStorage`
+implementations.
 
 ### ZIP archives
 
@@ -145,6 +153,25 @@ const result = await store.registerPublishedPackage({
   wheelVersion: "1.0.0",
 });
 
+// Optional related files (for example a campaign snapshot and latest pointer)
+// are committed together with the archive and updated index.
+const nextZipBytes = zip.compressJson({ packageId: 2 });
+await store.registerPublishedPackage({
+  phase: "PRIMES",
+  packageId: 2,
+  archive: nextZipBytes,
+  blockRange: { first: 100, size: 100 },
+  generatorVersion: "1.0.0",
+  wheelVersion: "1.0.0",
+  additionalArtifacts: [
+    {
+      reference: { id: "campaign-latest", path: "campaigns/demo/state/latest.json" },
+      data: { sequence: 2 },
+      metadata: { type: "campaign-checkpoint-latest", version: "1.0.0" },
+    },
+  ],
+});
+
 // Query
 const packages = await store.getPublishedPackages("PRIMES");
 const one = await store.getPublishedPackage("PRIMES", 1);
@@ -158,6 +185,11 @@ const phaseIndex = await phaseIndexFromStore(store, "PRIMES");
 const published: { entry: PublishIndexEntry; bytes: Uint8Array } | null =
   await publishedPackageFromStore(store, "PRIMES", 1);
 ```
+`GithubPublishIndexStore` commits the package archive, updated index, and any
+`additionalArtifacts` in one GitHub commit. `GithubCampaignCheckpointStore`
+commits the archive, immutable snapshot, and `latest` pointer together.
+Its optional `getArtifact(reference)` method loads the referenced binary and
+verifies its size and SHA-256 before returning it.
 
 A local equivalent (`LocalPublishIndexStore` over `LocalArtifactStorage`) is
 available for tests and local development.

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import type {
   ArtifactMetadata,
   ArtifactReference,
+  ArtifactWrite,
   ArtifactStorage,
 } from "../contracts/artifact-storage.js";
 import type { ArtifactContent } from "../models/artifact-content.js";
@@ -69,6 +70,14 @@ export class LocalArtifactStorage implements ArtifactStorage {
     await writeFile(path, serializePersistedDocument(document));
 
     return { id: reference.id, path };
+  }
+
+  async saveManyAt(writes: readonly ArtifactWrite[]): Promise<ArtifactReference[]> {
+    const saved: ArtifactReference[] = [];
+    for (const write of writes) {
+      saved.push(await this.saveAt(write.reference, write.data, write.metadata));
+    }
+    return saved;
   }
 
   async load(reference: ArtifactReference): Promise<unknown> {
