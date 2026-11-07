@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isValidPublishIndexEntry } from "../src/index.js";
 import type {
   PhaseType,
   PublishIndex,
@@ -8,6 +9,40 @@ import type {
 } from "../src/index.js";
 
 describe("publish-index types", () => {
+  it("validates the persisted entry contract independently of app-specific rules", () => {
+    const entry: PublishIndexEntry = {
+      packageId: 1,
+      filename: "products-pack-000001.zip",
+      sha256: "b".repeat(64),
+      sizeBytes: 2048,
+      firstLogicalBlock: 0,
+      lastLogicalBlock: 99,
+      blockSize: 300,
+      blockCount: 100,
+      generatorVersion: "1.0.0",
+      wheelVersion: "primorial-13-v1",
+      publishedAt: "2026-11-04T00:00:00.000Z",
+      products: {
+        strategyVersion: "products-v1",
+        taskContractVersion: "task-v1",
+        validatorVersion: "validator-v1",
+        sourcePackageId: 1,
+        sourceJobId: "job-1",
+        sourceBlockIndex: 0,
+        sourcePrimeHash: "c".repeat(64),
+      },
+    };
+
+    expect(isValidPublishIndexEntry(entry, "PRODUCTS")).toBe(true);
+    expect(isValidPublishIndexEntry({ ...entry, filename: "../escape.zip" }, "PRODUCTS")).toBe(false);
+    expect(isValidPublishIndexEntry({ ...entry, extra: true }, "PRODUCTS")).toBe(false);
+    expect(isValidPublishIndexEntry({ ...entry, products: {
+      ...entry.products,
+      sourcePrimeHash: "not-a-sha256",
+    } }, "PRODUCTS")).toBe(false);
+    expect(isValidPublishIndexEntry(entry, "PRIMES")).toBe(false);
+  });
+
   it("allows every known phase value", () => {
     const phases: PhaseType[] = [
       "PRIMES",

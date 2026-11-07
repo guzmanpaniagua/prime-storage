@@ -34,6 +34,7 @@ export type {
   PublishPackageInput,
   PublishPackageResult,
 } from "./usecases/publish-index/publish-index-types.js";
+export { isValidPublishIndexEntry } from "./usecases/publish-index/publish-index-core.js";
 export type { PublishIndexStore } from "./usecases/publish-index/publish-index-store.js";
 export { LocalPublishIndexStore } from "./usecases/publish-index/local-publish-index-store.js";
 export { GithubPublishIndexStore } from "./usecases/publish-index/github-publish-index-store.js";

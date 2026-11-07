@@ -142,6 +142,41 @@ describe("LocalPublishIndexStore", () => {
     expect(products[0]?.filename).toBe("products-pack-000001.zip");
   });
 
+  it("includes all PRODUCTS source metadata in idempotency checks", async () => {
+    const store = await createStore();
+    const input = makeInput({
+      phase: "PRODUCTS",
+      products: {
+        strategyVersion: "products-v1",
+        taskContractVersion: "task-v1",
+        validatorVersion: "validator-v1",
+        sourceJobId: "job-1",
+        sourceBlockIndex: 4,
+        sourcePrimeHash: "a".repeat(64),
+      },
+    });
+
+    const first = await store.registerPublishedPackage(input);
+    const duplicate = await store.registerPublishedPackage(input);
+
+    expect(first.status).toBe("registered");
+    expect(duplicate.status).toBe("already-published");
+
+    const conflictingProducts = [
+      { ...input.products!, strategyVersion: "products-v2" },
+      { ...input.products!, taskContractVersion: "task-v2" },
+      { ...input.products!, validatorVersion: "validator-v2" },
+      { ...input.products!, sourceJobId: "job-2" },
+      { ...input.products!, sourceBlockIndex: 5 },
+      { ...input.products!, sourcePrimeHash: "b".repeat(64) },
+    ];
+
+    for (const products of conflictingProducts) {
+      await expect(store.registerPublishedPackage({ ...input, products }))
+        .rejects.toMatchObject({ name: "PublishIndexError", code: "PACKAGE_CONFLICT" });
+    }
+  });
+
   it("publishes a ZIP and recovers it with correct hash and size", async () => {
     const store = await createStore();
     const archive = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);

@@ -21,6 +21,58 @@ export const PHASE_PREFIXES: Record<PhaseType, string> = {
   FINAL_CERTIFICATION: "final-certificates",
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function isValidPublishIndexEntry(
+  value: unknown,
+  phase: PhaseType
+): value is PublishIndexEntry {
+  if (!isRecord(value)) return false;
+  const entry = value;
+  if (Object.keys(entry).some((key) => ![
+    "packageId", "filename", "sha256", "sizeBytes", "firstLogicalBlock",
+    "lastLogicalBlock", "blockSize", "blockCount", "generatorVersion",
+    "wheelVersion", "publishedAt", "products",
+  ].includes(key))) {
+    return false;
+  }
+
+  const packageId = entry.packageId;
+  const validCore = Number.isSafeInteger(packageId)
+    && (packageId as number) > 0
+    && entry.filename === `${PHASE_PREFIXES[phase]}-pack-${String(packageId).padStart(6, "0")}.zip`
+    && typeof entry.sha256 === "string" && /^[a-f0-9]{64}$/.test(entry.sha256)
+    && Number.isSafeInteger(entry.sizeBytes) && (entry.sizeBytes as number) > 0
+    && Number.isSafeInteger(entry.firstLogicalBlock) && (entry.firstLogicalBlock as number) >= 0
+    && Number.isSafeInteger(entry.lastLogicalBlock) && (entry.lastLogicalBlock as number) >= (entry.firstLogicalBlock as number)
+    && Number.isSafeInteger(entry.blockSize) && (entry.blockSize as number) > 0
+    && Number.isSafeInteger(entry.blockCount) && (entry.blockCount as number) > 0
+    && (entry.lastLogicalBlock as number) - (entry.firstLogicalBlock as number) + 1 === entry.blockCount
+    && typeof entry.generatorVersion === "string" && !!entry.generatorVersion.trim() && entry.generatorVersion.length <= 64
+    && typeof entry.wheelVersion === "string" && !!entry.wheelVersion.trim()
+    && typeof entry.publishedAt === "string" && Number.isFinite(Date.parse(entry.publishedAt));
+
+  const products = entry.products;
+  const validProducts = phase === "PRODUCTS"
+    ? isRecord(products)
+      && !Object.keys(products).some((key) => ![
+        "strategyVersion", "taskContractVersion", "validatorVersion", "sourcePackageId",
+        "sourceJobId", "sourceBlockIndex", "sourcePrimeHash",
+      ].includes(key))
+      && typeof products.strategyVersion === "string" && !!products.strategyVersion.trim()
+      && typeof products.taskContractVersion === "string" && !!products.taskContractVersion.trim()
+      && typeof products.validatorVersion === "string" && !!products.validatorVersion.trim()
+      && Number.isSafeInteger(products.sourcePackageId) && (products.sourcePackageId as number) > 0
+      && typeof products.sourceJobId === "string" && !!products.sourceJobId.trim()
+      && (products.sourceBlockIndex === undefined || (Number.isSafeInteger(products.sourceBlockIndex) && (products.sourceBlockIndex as number) >= 0))
+      && (products.sourcePrimeHash === undefined || (typeof products.sourcePrimeHash === "string" && /^[a-f0-9]{64}$/.test(products.sourcePrimeHash)))
+    : products === undefined;
+
+  return validCore && validProducts;
+}
+
 export function emptyIndex(phase: PhaseType): PublishIndex {
   return { phase, packages: [] };
 }
@@ -38,8 +90,23 @@ export function sameEntry(
     && existing.blockSize === incoming.blockSize
     && existing.blockCount === incoming.blockCount
     && existing.generatorVersion === incoming.generatorVersion
-    && existing.wheelVersion === incoming.wheelVersion;
+    && existing.wheelVersion === incoming.wheelVersion
+    && sameProductsMetadata(existing.products, incoming.products);
   // publishedAt se excluye deliberadamente: no participa en la igualdad.
+}
+
+function sameProductsMetadata(
+  existing: PublishIndexEntry["products"],
+  incoming: PublishIndexEntry["products"]
+): boolean {
+  // Source metadata is part of PRODUCTS identity; undefined must match undefined.
+  return existing?.strategyVersion === incoming?.strategyVersion
+    && existing?.taskContractVersion === incoming?.taskContractVersion
+    && existing?.validatorVersion === incoming?.validatorVersion
+    && existing?.sourcePackageId === incoming?.sourcePackageId
+    && existing?.sourceJobId === incoming?.sourceJobId
+    && existing?.sourceBlockIndex === incoming?.sourceBlockIndex
+    && existing?.sourcePrimeHash === incoming?.sourcePrimeHash;
 }
 
 export const PHASE_FOLDERS: Record<PhaseType, string> = {
