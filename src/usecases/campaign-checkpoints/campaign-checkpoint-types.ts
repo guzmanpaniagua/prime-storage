@@ -9,7 +9,19 @@
  *
  * Issue 40a: solo el modelo de datos, sin validaciones, stores ni lógica GitHub.
  */
-import type { PhaseType, PublishIndex } from "../publish-index/publish-index-types.js";
+import type { PhaseType, PublishIndex, PublishIndexEntry } from "../publish-index/publish-index-types.js";
+
+/** Input file shape used when validating checkpoint artifacts bundled with a package publication. */
+export interface PackageCheckpointFile {
+  path: string;
+  content: string | Uint8Array;
+}
+
+/** Package fields required to validate the corresponding immutable checkpoint snapshot. */
+export type PackageCheckpointEntry = Pick<
+  PublishIndexEntry,
+  "packageId" | "filename" | "sha256" | "sizeBytes" | "lastLogicalBlock"
+>;
 
 /**
  * Tipos de artefacto que un checkpoint puede referenciar.

@@ -62,7 +62,10 @@ export type {
   CampaignArtifactReference,
   CampaignCheckpointPointer,
   CampaignCheckpointSnapshot,
+  PackageCheckpointEntry,
+  PackageCheckpointFile,
 } from "./usecases/campaign-checkpoints/campaign-checkpoint-types.js";
+export { validatePackageCheckpointArtifacts } from "./usecases/campaign-checkpoints/campaign-checkpoint-core.js";
 export type { CampaignCheckpointStore } from "./usecases/campaign-checkpoints/campaign-checkpoint-store.js";
 export { CampaignCheckpointError } from "./usecases/campaign-checkpoints/campaign-checkpoint-error.js";
 export type {

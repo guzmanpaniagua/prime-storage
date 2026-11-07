@@ -6,6 +6,7 @@ import {
   archiveReference,
   indexReference,
   persistWrites,
+  persistMissingWrites,
   sameEntry,
   buildEntry,
   validatePublishInput,
@@ -71,7 +72,7 @@ export class LocalPublishIndexStore implements PublishIndexStore {
     if (existing) {
       if (sameEntry(existing, incomingEntry)) {
         if (input.additionalArtifacts?.length) {
-          await persistWrites(
+          await persistMissingWrites(
             this.storage,
             input.additionalArtifacts,
             `Repair package ${input.packageId} related artifacts in ${input.phase}`

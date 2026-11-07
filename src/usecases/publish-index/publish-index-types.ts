@@ -48,6 +48,8 @@ export interface PublishPackageInput {
   blockSize?: number;
   generatorVersion: string;
   wheelVersion: string;
+  /** Optional publication timestamp supplied by callers that snapshot the resulting index. */
+  publishedAt?: string;
   products?: {
     strategyVersion: string;
     taskContractVersion: string;

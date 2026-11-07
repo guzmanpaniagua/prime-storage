@@ -174,7 +174,7 @@ export function buildEntry(input: PublishPackageInput): PublishIndexEntry {
     blockCount: input.blockRange.size,
     generatorVersion: input.generatorVersion,
     wheelVersion: input.wheelVersion,
-    publishedAt: new Date().toISOString(),
+    publishedAt: input.publishedAt ?? new Date().toISOString(),
   };
 
   if (input.products) {
@@ -263,6 +263,57 @@ export async function persistWrites(
   for (const write of writes) {
     await storage.saveAt(write.reference, write.data, write.metadata);
   }
+}
+
+/**
+ * Repairs missing related artifacts without replacing existing content on an
+ * idempotent package retry. Existing divergent content is a hard conflict.
+ */
+export async function persistMissingWrites(
+  storage: ArtifactStorage,
+  writes: readonly ArtifactWrite[],
+  message: string
+): Promise<void> {
+  const missing: ArtifactWrite[] = [];
+  for (const write of writes) {
+    try {
+      await storage.getMetadata(write.reference);
+    } catch (error) {
+      if (isArtifactNotFound(error)) {
+        missing.push(write);
+        continue;
+      }
+      throw error;
+    }
+    const current = await storage.load(write.reference);
+    if (!sameArtifactContent(current, write.data)) {
+      throw new PublishIndexError(
+        "ADDITIONAL_ARTIFACT_CONFLICT",
+        `Related artifact ${write.reference.path} already exists with different content.`
+      );
+    }
+  }
+  if (missing.length) await persistWrites(storage, missing, message);
+}
+
+function sameArtifactContent(left: unknown, right: unknown): boolean {
+  if (left instanceof Uint8Array || right instanceof Uint8Array) {
+    return left instanceof Uint8Array
+      && right instanceof Uint8Array
+      && left.byteLength === right.byteLength
+      && left.every((value, index) => value === right[index]);
+  }
+  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") {
+    return Object.is(left, right);
+  }
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function isArtifactNotFound(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: unknown; status?: unknown };
+  return candidate.code === "ENOENT"
+    || candidate.status === 404;
 }
 
 export async function loadArchive(

@@ -7,7 +7,8 @@ import type {
   CampaignCheckpointSnapshot,
 } from "./campaign-checkpoint-types.js";
 import { phaseFolder } from "../publish-index/publish-index-core.js";
-import type { PublishIndex } from "../publish-index/publish-index-types.js";
+import type { PhaseType, PublishIndex } from "../publish-index/publish-index-types.js";
+import type { PackageCheckpointEntry, PackageCheckpointFile } from "./campaign-checkpoint-types.js";
 
 /**
  * Raíz física de una campaña dentro del repositorio.
@@ -122,6 +123,126 @@ function isPublishIndex(value: unknown, phase: string): boolean {
 
 function sha256Of(content: string | Uint8Array): string {
   return createHash("sha256").update(content).digest("hex");
+}
+
+function checkpointText(content: string | Uint8Array): string {
+  if (typeof content === "string") return content;
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(content);
+  } catch {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "The package checkpoint contains invalid UTF-8."
+    );
+  }
+}
+
+/**
+ * Validates the persisted pointer/snapshot pair bundled with a package.
+ * Workflow-specific rules (allowed job types, campaign naming and prior
+ * checkpoint continuity) remain the responsibility of the consuming app.
+ */
+export function validatePackageCheckpointArtifacts(input: {
+  phase: PhaseType;
+  entry: PackageCheckpointEntry;
+  files: readonly PackageCheckpointFile[];
+}): { pointer: CampaignCheckpointPointer; snapshot: CampaignCheckpointSnapshot; artifacts: ArtifactWrite[] } {
+  const { phase, entry, files } = input;
+  const snapshotName = `checkpoint-${String(entry.packageId).padStart(6, "0")}.json`;
+  const pointerFile = files.find((file) => file.path.endsWith("/state/latest.json"));
+  const snapshotFile = files.find((file) => file.path.endsWith(`/state/snapshots/${snapshotName}`));
+  if (
+    files.length !== 2
+    || !pointerFile
+    || !snapshotFile
+    || pointerFile.path === snapshotFile.path
+    || !Number.isSafeInteger(entry.packageId) || entry.packageId < 1
+    || !Number.isSafeInteger(entry.lastLogicalBlock)
+    || !Number.isSafeInteger(entry.sizeBytes) || entry.sizeBytes < 1
+    || !isSha256(entry.sha256)
+  ) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "A package publication requires its latest pointer and immutable snapshot."
+    );
+  }
+
+  let pointerValue: unknown;
+  let snapshotValue: unknown;
+  let snapshotText: string;
+  try {
+    pointerValue = JSON.parse(checkpointText(pointerFile.content)) as unknown;
+    snapshotText = checkpointText(snapshotFile.content);
+    snapshotValue = JSON.parse(snapshotText) as unknown;
+  } catch (error) {
+    if (error instanceof CampaignCheckpointError) throw error;
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "The package checkpoint pointer or snapshot is not valid JSON."
+    );
+  }
+
+  if (!isRecord(pointerValue) || typeof pointerValue.campaignId !== "string" || !isRecord(snapshotValue)) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "The package checkpoint pointer or snapshot has an invalid structure."
+    );
+  }
+
+  const campaignId = pointerValue.campaignId;
+  const root = campaignRoot(campaignId);
+  if (
+    pointerFile.path !== `${root}/state/latest.json`
+    || snapshotFile.path !== checkpointSnapshotPath(campaignId, entry.packageId)
+  ) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "The package checkpoint paths do not match its campaign and sequence."
+    );
+  }
+
+  const pointer = parsePointer(campaignId, pointerValue);
+  const snapshot = snapshotValue as unknown as CampaignCheckpointSnapshot;
+  validateSnapshot(snapshot);
+  verifySnapshotAgainstPointer(campaignId, pointer, snapshot);
+
+  const indexedEntry = snapshot.packageIndex.packages.find((item) => item.packageId === entry.packageId);
+  if (
+    pointer.sequence !== entry.packageId
+    || snapshot.phase !== phase
+    || snapshot.sequence !== entry.packageId
+    || snapshot.lastPublishedPackageId !== entry.packageId
+    || snapshot.lastPublishedLogicalBlock !== entry.lastLogicalBlock
+    || snapshot.nextLogicalBlockToPublish !== entry.lastLogicalBlock + 1
+    || snapshot.artifact.kind !== "PUBLISHED_PACKAGE"
+    || snapshot.artifact.packageId !== entry.packageId
+    || snapshot.artifact.path !== `${phaseFolder(phase)}/${entry.filename}`
+    || snapshot.artifact.sha256 !== entry.sha256
+    || snapshot.artifact.sizeBytes !== entry.sizeBytes
+    || !indexedEntry
+    || indexedEntry.filename !== entry.filename
+    || indexedEntry.sha256 !== entry.sha256
+    || indexedEntry.sizeBytes !== entry.sizeBytes
+    || pointer.snapshotSha256 !== sha256Of(snapshotFile.content)
+  ) {
+    throw new CampaignCheckpointError(
+      "CHECKPOINT_INVALID",
+      "The package checkpoint does not match the package being published."
+    );
+  }
+
+  const artifacts: ArtifactWrite[] = files.map((file) => {
+    const isPointer = file === pointerFile;
+    return {
+      reference: { id: `campaign-checkpoint-${file.path}`, path: file.path },
+      data: isPointer ? pointerValue : snapshotText,
+      metadata: {
+        type: isPointer ? "campaign-checkpoint-latest" : "campaign-checkpoint-snapshot",
+        version: "1.0.0",
+      },
+    };
+  });
+  return { pointer, snapshot, artifacts };
 }
 
 /** Serialización física del snapshot: base del hash registrado en el puntero. */

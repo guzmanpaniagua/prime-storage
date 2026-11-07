@@ -95,6 +95,60 @@ describe("LocalPublishIndexStore", () => {
     expect(packages).toHaveLength(1);
   });
 
+  it("repairs missing related artifacts without overwriting existing ones on retry", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "publish-index-repair-test-"));
+    const storage = new LocalArtifactStorage(dir);
+    const store = new LocalPublishIndexStore(storage);
+    const input = makeInput();
+    await store.registerPublishedPackage(input);
+    await storage.saveAt(
+      { id: "checkpoint-latest", path: "campaigns/campaign-1/state/latest.json" },
+      "latest-v1",
+      { type: "campaign-checkpoint-latest", version: "1.0.0" }
+    );
+    await store.registerPublishedPackage({
+      ...input,
+      additionalArtifacts: [
+        {
+          reference: { id: "checkpoint-snapshot", path: "campaigns/campaign-1/state/snapshots/checkpoint-000001.json" },
+          data: "snapshot-v1",
+          metadata: { type: "campaign-checkpoint-snapshot", version: "1.0.0" },
+        },
+        {
+          reference: { id: "checkpoint-latest", path: "campaigns/campaign-1/state/latest.json" },
+          data: "latest-v1",
+          metadata: { type: "campaign-checkpoint-latest", version: "1.0.0" },
+        },
+      ],
+    });
+
+    await expect(storage.load({ id: "checkpoint-latest", path: "campaigns/campaign-1/state/latest.json" }))
+      .resolves.toBe("latest-v1");
+    await expect(storage.load({ id: "checkpoint-snapshot", path: "campaigns/campaign-1/state/snapshots/checkpoint-000001.json" }))
+      .resolves.toBe("snapshot-v1");
+  });
+
+  it("rejects divergent related artifacts instead of overwriting them on retry", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "publish-index-conflict-test-"));
+    const storage = new LocalArtifactStorage(dir);
+    const store = new LocalPublishIndexStore(storage);
+    const input = makeInput({
+      additionalArtifacts: [{
+        reference: { id: "checkpoint-latest", path: "campaigns/campaign-1/state/latest.json" },
+        data: "latest-v1",
+        metadata: { type: "campaign-checkpoint-latest", version: "1.0.0" },
+      }],
+    });
+
+    await store.registerPublishedPackage(input);
+    await expect(store.registerPublishedPackage({
+      ...input,
+      additionalArtifacts: [{ ...input.additionalArtifacts![0]!, data: "latest-v2" }],
+    })).rejects.toMatchObject({ name: "PublishIndexError", code: "ADDITIONAL_ARTIFACT_CONFLICT" });
+    await expect(storage.load({ id: "checkpoint-latest", path: "campaigns/campaign-1/state/latest.json" }))
+      .resolves.toBe("latest-v1");
+  });
+
   it("rejects a duplicate packageId with different content", async () => {
     const store = await createStore();
 
