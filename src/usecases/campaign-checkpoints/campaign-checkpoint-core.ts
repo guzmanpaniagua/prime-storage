@@ -9,6 +9,7 @@ import type {
 import { phaseFolder } from "../publish-index/publish-index-core.js";
 import type { PhaseType, PublishIndex } from "../publish-index/publish-index-types.js";
 import type { PackageCheckpointEntry, PackageCheckpointFile } from "./campaign-checkpoint-types.js";
+import { isStorageNotFoundError } from "../../utils/storage-errors.js";
 
 /**
  * Raíz física de una campaña dentro del repositorio.
@@ -52,8 +53,7 @@ export async function loadCampaignArtifact(
   try {
     content = await storage.load(artifactReference(reference.path));
   } catch (error) {
-    const status = isRecord(error) ? error.status : undefined;
-    if (status !== undefined && status !== 404) throw error;
+    if (!isStorageNotFoundError(error)) throw error;
     throw new CampaignCheckpointError(
       "CHECKPOINT_ARCHIVE_NOT_FOUND",
       "No se encontró el artefacto asociado al checkpoint."
@@ -468,7 +468,8 @@ export async function assertImmutablePathsFree(
   for (const reference of [snapshotReferenceByPath(snapshotPath), artifactReference(archivePath)]) {
     try {
       await storage.getMetadata(reference);
-    } catch {
+    } catch (error) {
+      if (!isStorageNotFoundError(error)) throw error;
       continue;
     }
     throw new CampaignCheckpointError(

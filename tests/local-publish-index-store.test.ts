@@ -326,6 +326,90 @@ describe("LocalPublishIndexStore", () => {
     });
   });
 
+  it.each([
+    ["phase mismatch", { phase: "PRODUCTS", packages: [] }],
+    ["invalid entry", { phase: "PRIMES", packages: [{ packageId: 1 }] }],
+  ])("rejects an index with %s", async (_label, data) => {
+    const store = await createStore();
+    const storageDir = (store as unknown as { storage: { storageDir: string } }).storage.storageDir;
+    const { writeFile, mkdir } = await import("node:fs/promises");
+    await mkdir(join(storageDir, "primes"), { recursive: true });
+    await writeFile(join(storageDir, "primes", "publish-index.json"), JSON.stringify({
+      reference: { id: "publish-index-PRIMES", path: "primes/publish-index.json" },
+      metadata: { type: "publish-index-primes", version: "1.0.0" },
+      contentType: "json",
+      data,
+    }));
+
+    await expect(store.getPublishedPackages("PRIMES")).rejects.toMatchObject({
+      name: "PublishIndexError",
+      code: "INDEX_INVALID",
+    });
+  });
+
+  it.each(["duplicate", "out-of-order"] as const)("rejects %s package IDs in a stored index", async (caseName) => {
+    const store = await createStore();
+    const storageDir = (store as unknown as { storage: { storageDir: string } }).storage.storageDir;
+    const valid = [
+      (await store.registerPublishedPackage(makeInput({ packageId: 1 }))).entry,
+      (await store.registerPublishedPackage(makeInput({ packageId: 2 }))).entry,
+    ];
+    const packages = caseName === "duplicate"
+      ? [valid[0], valid[0]]
+      : [valid[1], valid[0]];
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(join(storageDir, "primes", "publish-index.json"), JSON.stringify({
+      reference: { id: "publish-index-PRIMES", path: "primes/publish-index.json" },
+      metadata: { type: "publish-index-primes", version: "1.0.0" },
+      contentType: "json",
+      data: { phase: "PRIMES", packages },
+    }));
+
+    await expect(store.registerPublishedPackage(makeInput({ packageId: 3 }))).rejects.toMatchObject({
+      code: "INDEX_INVALID",
+    });
+  });
+
+  it("rejects invalid PRODUCTS metadata in a stored index", async () => {
+    const store = await createStore();
+    const input = makeInput({
+      phase: "PRODUCTS",
+      products: {
+        strategyVersion: "strategy-v1",
+        taskContractVersion: "task-v1",
+        validatorVersion: "validator-v1",
+        sourceJobId: "job-1",
+        sourceBlockIndex: 0,
+        sourcePrimeHash: "a".repeat(64),
+      },
+    });
+    const entry = (await store.registerPublishedPackage(input)).entry;
+    const storageDir = (store as unknown as { storage: { storageDir: string } }).storage.storageDir;
+    const { writeFile } = await import("node:fs/promises");
+    await writeFile(join(storageDir, "products", "publish-index.json"), JSON.stringify({
+      reference: { id: "publish-index-PRODUCTS", path: "products/publish-index.json" },
+      metadata: { type: "publish-index-products", version: "1.0.0" },
+      contentType: "json",
+      data: {
+        phase: "PRODUCTS",
+        packages: [{ ...entry, products: { ...entry.products, sourcePrimeHash: "invalid" } }],
+      },
+    }));
+
+    await expect(store.getPublishedPackages("PRODUCTS")).rejects.toMatchObject({
+      code: "INDEX_INVALID",
+    });
+  });
+
+  it("propagates a storage failure instead of treating it as an empty index", async () => {
+    const storage = {
+      load: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); },
+    };
+    const store = new LocalPublishIndexStore(storage as unknown as import("../src/index.js").ArtifactStorage);
+
+    await expect(store.getPublishedPackages("PRIMES")).rejects.toMatchObject({ code: "EACCES" });
+  });
+
   it("verifyPublishedArchive passes for a valid published archive", async () => {
     const store = await createStore();
 

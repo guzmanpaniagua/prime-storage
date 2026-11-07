@@ -75,13 +75,7 @@ function createSaveLoadStorage(): {
           url.includes((doc as { reference?: { path?: string } }).reference?.path ?? "###")
       );
       if (match) {
-        return new Response(
-          JSON.stringify({
-            content: Buffer.from(JSON.stringify(match, null, 2)).toString("base64"),
-            encoding: "base64",
-          }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify(match, null, 2), { status: 200 });
       }
       return new Response(null, { status: 404 });
     }
@@ -113,15 +107,7 @@ describe("GithubArtifactStorage", () => {
     const fetchImpl = (async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/contents/artifacts/abc.json")) {
-        return new Response(
-          JSON.stringify({
-            content: Buffer.from(
-              JSON.stringify(savedDocument, null, 2)
-            ).toString("base64"),
-            encoding: "base64",
-          }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify(savedDocument, null, 2), { status: 200 });
       }
       return new Response(null, { status: 404 });
     }) as typeof fetch;
@@ -142,6 +128,25 @@ describe("GithubArtifactStorage", () => {
     });
 
     expect(metadata).toEqual({ type: "prime", version: "2.0.0" });
+  });
+
+  it("loads a persisted binary document larger than the Contents API JSON limit using raw bytes", async () => {
+    const bytes = new Uint8Array(800 * 1024).fill(37);
+    const rawDocument = JSON.stringify({
+      reference: { id: "large", path: "artifacts/large.json" },
+      metadata: { type: "large-archive", version: "1.0.0" },
+      contentType: "binary",
+      data: Buffer.from(bytes).toString("base64"),
+    }, null, 2);
+    expect(Buffer.byteLength(rawDocument)).toBeGreaterThan(1_000_000);
+
+    const fetchImpl = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      expect(new Headers(init?.headers).get("Accept")).toBe("application/vnd.github.raw+json");
+      return new Response(rawDocument, { status: 200 });
+    }) as typeof fetch;
+    const storage = new GithubArtifactStorage(config, fetchImpl);
+
+    await expect(storage.load({ id: "large", path: "artifacts/large.json" })).resolves.toEqual(bytes);
   });
 
   it("getMetadata throws GITHUB_ARTIFACT_NOT_FOUND when the file is missing", async () => {
@@ -310,12 +315,7 @@ describe("GithubArtifactStorage.load", () => {
       const url = String(input);
       if (status === 200 && url.includes("/contents/artifacts/abc.json")) {
         return new Response(
-          JSON.stringify({
-            content: Buffer.from(
-              typeof document === "string" ? document : JSON.stringify(document, null, 2)
-            ).toString("base64"),
-            encoding: "base64",
-          }),
+          typeof document === "string" ? document : JSON.stringify(document, null, 2),
           { status: 200 }
         );
       }

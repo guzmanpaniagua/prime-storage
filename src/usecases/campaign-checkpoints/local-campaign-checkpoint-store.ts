@@ -23,6 +23,7 @@ import type {
   CampaignCheckpointPointer,
   CampaignCheckpointSnapshot,
 } from "./campaign-checkpoint-types.js";
+import { isStorageNotFoundError } from "../../utils/storage-errors.js";
 
 /**
  * Implementación local de CampaignCheckpointStore sobre ArtifactStorage.
@@ -38,8 +39,9 @@ export class LocalCampaignCheckpointStore implements CampaignCheckpointStore {
     let pointerRaw: unknown;
     try {
       pointerRaw = await this.storage.load(pointerReference(campaignId));
-    } catch {
-      return null; // Sin checkpoint vigente: no es un error.
+    } catch (error) {
+      if (isStorageNotFoundError(error)) return null;
+      throw error;
     }
     const pointer = parsePointer(campaignId, pointerRaw);
 
@@ -50,7 +52,8 @@ export class LocalCampaignCheckpointStore implements CampaignCheckpointStore {
       snapshotText = typeof content === "string"
         ? content
         : JSON.stringify(content, null, 2);
-    } catch {
+    } catch (error) {
+      if (!isStorageNotFoundError(error)) throw error;
       throw new CampaignCheckpointError(
         "CHECKPOINT_HASH_MISMATCH",
         "El snapshot referenciado por latest no existe."
@@ -137,8 +140,9 @@ export class LocalCampaignCheckpointStore implements CampaignCheckpointStore {
     try {
       const content = await this.storage.load(artifactReference(archivePath));
       return isUint8Array(content) ? content : null;
-    } catch {
-      return null;
+    } catch (error) {
+      if (isStorageNotFoundError(error)) return null;
+      throw error;
     }
   }
 }

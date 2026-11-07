@@ -1,3 +1,14 @@
+Estado: pendiente de confirmar la integración en el repositorio consumidor (2026-11-07).
+
+La implementación de `CampaignCheckpointStore` ya existe en esta biblioteca, pero
+este repositorio no contiene `GitHubPublicationService` ni permite verificar la
+migración del consumidor. No cerrar este seguimiento hasta registrar el enlace al
+repositorio/commit consumidor y confirmar la traducción de errores y la comparación
+con el índice remoto. Si esa integración ya se completó, actualizar este documento
+con esa referencia y cerrar el issue correspondiente.
+
+---
+
 Objetivo:
 
 Migrar getCampaignCheckpoint() para delegar en CampaignCheckpointStore.

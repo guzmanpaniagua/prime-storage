@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { isUint8Array } from "../../models/persisted-artifact-document.js";
 import type { ArtifactStorage, ArtifactWrite } from "../../contracts/artifact-storage.js";
 import { PublishIndexError } from "./publish-index-error.js";
+import { isStorageNotFoundError } from "../../utils/storage-errors.js";
 import type {
   PhaseType,
   PublishIndex,
@@ -199,19 +200,32 @@ export async function loadIndex(
   let content: unknown;
   try {
     content = await storage.load(indexReference(phase));
-  } catch {
-    // No existe todavía: índice vacío, no es un error.
-    return emptyIndex(phase);
+  } catch (error) {
+    if (isStorageNotFoundError(error)) return emptyIndex(phase);
+    throw error;
   }
 
   if (
     !content ||
     typeof content !== "object" ||
+    (content as PublishIndex).phase !== phase ||
     !Array.isArray((content as PublishIndex).packages)
   ) {
     throw new PublishIndexError(
       "INDEX_INVALID",
       `The publish index for phase ${phase} has an invalid structure.`
+    );
+  }
+  const packages = (content as PublishIndex).packages;
+  let priorPackageId = 0;
+  if (packages.some((entry) => {
+    if (!isValidPublishIndexEntry(entry, phase) || entry.packageId <= priorPackageId) return true;
+    priorPackageId = entry.packageId;
+    return false;
+  })) {
+    throw new PublishIndexError(
+      "INDEX_INVALID",
+      `The publish index for phase ${phase} contains invalid, duplicate or out-of-order entries.`
     );
   }
   return content as PublishIndex;
@@ -279,7 +293,7 @@ export async function persistMissingWrites(
     try {
       await storage.getMetadata(write.reference);
     } catch (error) {
-      if (isArtifactNotFound(error)) {
+      if (isStorageNotFoundError(error)) {
         missing.push(write);
         continue;
       }
@@ -309,13 +323,6 @@ function sameArtifactContent(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
-function isArtifactNotFound(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const candidate = error as { code?: unknown; status?: unknown };
-  return candidate.code === "ENOENT"
-    || candidate.status === 404;
-}
-
 export async function loadArchive(
   storage: ArtifactStorage,
   phase: PhaseType,
@@ -325,8 +332,9 @@ export async function loadArchive(
     const content = await storage.load(archiveReference(phase, entry));
     if (!isUint8Array(content)) return null;
     return content;
-  } catch {
-    return null;
+  } catch (error) {
+    if (isStorageNotFoundError(error)) return null;
+    throw error;
   }
 }
 
@@ -355,7 +363,8 @@ export async function archiveExists(
   try {
     await storage.getMetadata(archiveReference(phase, entry));
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    if (isStorageNotFoundError(error)) return false;
+    throw error;
   }
 }

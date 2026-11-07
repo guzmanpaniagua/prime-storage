@@ -1,5 +1,6 @@
 import type { ArtifactReference, ArtifactStorage } from "../../contracts/artifact-storage.js";
 import { ProjectStateError } from "./project-state-error.js";
+import { isStorageNotFoundError } from "../../utils/storage-errors.js";
 import type { ProjectState } from "./project-state-types.js";
 
 /**
@@ -21,9 +22,9 @@ export async function loadProjectState(
   let content: unknown;
   try {
     content = await storage.load(projectStateReference);
-  } catch {
-    // No existe todavía: null, no es un error.
-    return null;
+  } catch (error) {
+    if (isStorageNotFoundError(error)) return null;
+    throw error;
   }
 
   if (

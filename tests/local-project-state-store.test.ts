@@ -22,6 +22,15 @@ describe("LocalProjectStateStore", () => {
     expect(state).toBeNull();
   });
 
+  it("propagates a read error instead of treating it as missing state", async () => {
+    const storage = {
+      load: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); },
+    };
+    const store = new LocalProjectStateStore(storage as unknown as import("../src/index.js").ArtifactStorage);
+
+    await expect(store.getProjectState()).rejects.toMatchObject({ code: "EACCES" });
+  });
+
   it("returns a valid document after saving it", async () => {
     const store = await createStore();
     const state: ProjectState = {

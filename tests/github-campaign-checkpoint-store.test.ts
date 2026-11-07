@@ -21,9 +21,13 @@ const packageIndex: PublishIndex = {
       filename: "primes-pack-000001.zip",
       sha256: "a".repeat(64),
       sizeBytes: 128,
-      itemCount: 10,
+      firstLogicalBlock: 0,
+      lastLogicalBlock: 9,
+      blockSize: 10,
+      blockCount: 10,
+      generatorVersion: "1.0.0",
+      wheelVersion: "1.0.0",
       publishedAt: "2026-11-06T00:00:00.000Z",
-      version: "1.0.0",
     },
   ],
 };
@@ -81,13 +85,7 @@ function createMockFetch(): { fetchImpl: typeof fetch; getCommitCount: () => num
       if (content === undefined) {
         return new Response(JSON.stringify({ message: "Not Found" }), { status: 404 });
       }
-      return new Response(
-        JSON.stringify({
-          content: Buffer.from(content).toString("base64"),
-          encoding: "base64",
-        }),
-        { status: 200 }
-      );
+      return new Response(content, { status: 200 });
     }
 
     if (method === "GET" && url.includes("/git/ref/")) {
@@ -144,6 +142,19 @@ describe("GithubCampaignCheckpointStore", () => {
     await expect(store.getCheckpoint("camp-gh")).resolves.toBeNull();
   });
 
+  it("propaga un error GitHub distinto de 404 al leer latest", async () => {
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      if (String(input).includes("/contents/")) return new Response(null, { status: 500 });
+      return new Response(null, { status: 404 });
+    }) as typeof fetch;
+    const store = new GithubCampaignCheckpointStore(new GithubArtifactStorage(config, fetchImpl));
+
+    await expect(store.getCheckpoint("camp-gh")).rejects.toMatchObject({
+      name: "GithubStorageError",
+      code: "GITHUB_TRANSIENT_ERROR",
+    });
+  });
+
   it("publishCheckpoint publica y getCheckpoint lee el checkpoint", async () => {
     const { fetchImpl, getCommitCount } = createMockFetch();
     const storage = new GithubArtifactStorage(config, fetchImpl);
@@ -159,7 +170,10 @@ describe("GithubCampaignCheckpointStore", () => {
       "campaigns/camp-gh/state/snapshots/checkpoint-000001.json"
     );
 
-    const { pointer, snapshot } = await store.getCheckpoint("camp-gh");
+    const checkpoint = await store.getCheckpoint("camp-gh");
+    expect(checkpoint).not.toBeNull();
+    if (!checkpoint) throw new Error("Expected a published checkpoint.");
+    const { pointer, snapshot } = checkpoint;
     expect(pointer.sequence).toBe(1);
     expect(pointer.snapshotPath).toBe(result.snapshotPath);
     expect(pointer.snapshotSha256).toBe(result.snapshotSha256);

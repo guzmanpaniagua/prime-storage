@@ -82,12 +82,17 @@ describe("validatePackageCheckpointArtifacts", () => {
       .toBeTypeOf("string");
   });
 
-  it.each([
+  const invalidOverrides: Array<[string, {
+    pointer?: Partial<CampaignCheckpointPointer>;
+    snapshot?: Partial<CampaignCheckpointSnapshot>;
+  }]> = [
     ["snapshot hash", { pointer: { snapshotSha256: "f".repeat(64) } }],
     ["package cursor", { snapshot: { nextLogicalBlockToPublish: 301 } }],
     ["artifact reference", { snapshot: { artifact: { kind: "PUBLISHED_PACKAGE", packageId: 1, path: "primes/other.zip", sha256: archiveHash, sizeBytes: archive.byteLength } } }],
-    ["package index", { snapshot: { packageIndex: { phase: "PRIMES", packages: [] } } }],
-  ] as const)("rejects a mismatched %s", (_name, overrides) => {
+    ["package index", { snapshot: { packageIndex: { phase: "PRIMES", packages: [] as PublishIndexEntry[] } } }],
+  ];
+
+  it.each(invalidOverrides)("rejects a mismatched %s", (_name, overrides) => {
     expect(() => validatePackageCheckpointArtifacts({ phase: "PRIMES", entry, files: files(overrides) }))
       .toThrowError(CampaignCheckpointError);
   });

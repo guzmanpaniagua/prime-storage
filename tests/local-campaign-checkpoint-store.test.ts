@@ -18,9 +18,13 @@ const packageIndex: PublishIndex = {
       filename: "primes-pack-000001.zip",
       sha256: "a".repeat(64),
       sizeBytes: 128,
-      itemCount: 10,
+      firstLogicalBlock: 0,
+      lastLogicalBlock: 9,
+      blockSize: 10,
+      blockCount: 10,
+      generatorVersion: "1.0.0",
+      wheelVersion: "1.0.0",
       publishedAt: "2026-11-06T00:00:00.000Z",
-      version: "1.0.0",
     },
   ],
 };
@@ -67,6 +71,27 @@ describe("LocalCampaignCheckpointStore", () => {
     await expect(store.getCheckpoint("camp-1")).resolves.toBeNull();
   });
 
+  it("propaga fallos de lectura del puntero que no sean ausencia", async () => {
+    const storage = {
+      load: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); },
+    };
+    const store = new LocalCampaignCheckpointStore(storage as unknown as import("../src/index.js").ArtifactStorage);
+
+    await expect(store.getCheckpoint("camp-1")).rejects.toMatchObject({ code: "EACCES" });
+  });
+
+  it("no trata errores de metadata como rutas inmutables libres", async () => {
+    const storage = {
+      load: async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); },
+      getMetadata: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); },
+      saveAt: async () => { throw new Error("must not write"); },
+    };
+    const store = new LocalCampaignCheckpointStore(storage as unknown as import("../src/index.js").ArtifactStorage);
+
+    await expect(store.publishCheckpoint({ snapshot: buildSnapshot(), archive, archivePath }))
+      .rejects.toMatchObject({ code: "EACCES" });
+  });
+
   it("publishCheckpoint persiste artefacto, snapshot y puntero; getCheckpoint los lee", async () => {
     const store = await createStore();
     const result = await store.publishCheckpoint({
@@ -79,7 +104,10 @@ describe("LocalCampaignCheckpointStore", () => {
       "campaigns/camp-1/state/snapshots/checkpoint-000001.json"
     );
 
-    const { pointer, snapshot } = await store.getCheckpoint("camp-1");
+    const checkpoint = await store.getCheckpoint("camp-1");
+    expect(checkpoint).not.toBeNull();
+    if (!checkpoint) throw new Error("Expected a published checkpoint.");
+    const { pointer, snapshot } = checkpoint;
     expect(pointer.sequence).toBe(1);
     expect(pointer.snapshotPath).toBe(result.snapshotPath);
     expect(pointer.snapshotSha256).toBe(result.snapshotSha256);

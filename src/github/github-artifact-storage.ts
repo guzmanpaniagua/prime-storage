@@ -135,12 +135,29 @@ export class GithubArtifactStorage implements ArtifactStorage {
   private async readAndValidateArtifact(
     reference: ArtifactReference
   ): Promise<PersistedArtifactDocument> {
-    const content = await this.client.readFile(reference.path);
-    if (content === null) {
+    let bytes: Uint8Array;
+    try {
+      bytes = await this.client.readBinaryFile(reference.path);
+    } catch (error) {
+      if (typeof error === "object" && error !== null && "status" in error
+        && (error as { status?: unknown }).status === 404) {
+        throw new GithubStorageError(
+          404,
+          "GITHUB_ARTIFACT_NOT_FOUND",
+          `The artifact was not found at path ${reference.path}.`
+        );
+      }
+      throw error;
+    }
+
+    let content: string;
+    try {
+      content = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } catch {
       throw new GithubStorageError(
-        404,
-        "GITHUB_ARTIFACT_NOT_FOUND",
-        `The artifact was not found at path ${reference.path}.`
+        502,
+        "GITHUB_ARTIFACT_UNEXPECTED_STRUCTURE",
+        `The artifact at path ${reference.path} is not valid UTF-8.`
       );
     }
 

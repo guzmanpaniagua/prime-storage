@@ -16,8 +16,8 @@ function jsonResponse(status: number, body: unknown): Response {
 
 function createFetchRecorder(
   handler: (url: string, init: RequestInit) => Response
-): { fetchImpl: typeof fetch; calls: Array<{ url: string; method: string; body?: string }> } {
-  const calls: Array<{ url: string; method: string; body?: string }> = [];
+): { fetchImpl: typeof fetch; calls: Array<{ url: string; method: string; body?: string; accept?: string }> } {
+  const calls: Array<{ url: string; method: string; body?: string; accept?: string }> = [];
   const fetchImpl = (async (
     input: RequestInfo | URL,
     init?: RequestInit
@@ -28,6 +28,7 @@ function createFetchRecorder(
       method: requestInit.method ?? "GET",
       body:
         typeof requestInit.body === "string" ? requestInit.body : undefined,
+      accept: new Headers(requestInit.headers).get("Accept") ?? undefined,
     });
     return handler(String(input), requestInit);
   }) as typeof fetch;
@@ -63,6 +64,19 @@ describe("GithubClient.fileExists", () => {
     const client = makeClient(fetchImpl);
 
     await expect(client.fileExists("store/missing.json")).resolves.toBe(false);
+  });
+});
+
+describe("GithubClient.readBinaryFile", () => {
+  it("requests and returns raw bytes instead of a Contents API base64 envelope", async () => {
+    const bytes = new Uint8Array([0, 1, 2, 255]);
+    const { fetchImpl, calls } = createFetchRecorder(() => new Response(bytes, { status: 200 }));
+    const client = makeClient(fetchImpl);
+
+    await expect(client.readBinaryFile("artifacts/large.json")).resolves.toEqual(bytes);
+    expect(calls[0]?.url).toContain("/contents/artifacts/large.json");
+    expect(calls[0]?.method).toBe("GET");
+    expect(calls[0]?.accept).toBe("application/vnd.github.raw+json");
   });
 });
 

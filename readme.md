@@ -27,16 +27,18 @@ Those responsibilities belong to other repositories.
 The package is consumed directly from GitHub (not published to npm yet):
 
 ```bash
-npm install github:guzmanpaniagua/prime-storage#v1.1.0
+npm install github:guzmanpaniagua/prime-storage#v1.1.8
 ```
 
 Or in your `package.json`:
 
 ```json
 "dependencies": {
-  "prime-storage": "github:guzmanpaniagua/prime-storage#v1.1.0"
+  "prime-storage": "github:guzmanpaniagua/prime-storage#v1.1.8"
 }
 ```
+
+Node.js 22 or newer is required. CI validates Node.js 22 and 24.
 
 You can also point to a branch (`#main`) or a commit SHA. The `prepare` script
 builds the package automatically on install, so the compiled entry
@@ -215,5 +217,6 @@ npm test        # vitest run
 
 ## Versioning
 
-Versions are tagged in git (`v1.1.0`, ...). Pin a tag in your dependency to
-get reproducible installs; `#main` tracks the tip of the branch.
+Versions are tagged in git (`v1.1.8`, ...). Pin the tag you have validated in
+your dependency to get reproducible installs; `#main` tracks the tip of the
+branch and may change without a versioned release.

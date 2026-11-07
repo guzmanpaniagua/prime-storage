@@ -40,13 +40,7 @@ function createMockFetch(): { fetchImpl: typeof fetch } {
       if (content === undefined) {
         return new Response(JSON.stringify({ message: "Not Found" }), { status: 404 });
       }
-      return new Response(
-        JSON.stringify({
-          content: Buffer.from(content).toString("base64"),
-          encoding: "base64",
-        }),
-        { status: 200 }
-      );
+      return new Response(content, { status: 200 });
     }
 
     if (method === "GET" && url.includes("/git/ref/")) {

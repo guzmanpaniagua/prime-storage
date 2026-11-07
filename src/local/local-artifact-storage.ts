@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, isAbsolute, join } from "node:path";
+import { lstat, mkdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
   ArtifactMetadata,
@@ -22,7 +22,7 @@ export class LocalArtifactStorage implements ArtifactStorage {
   private readonly storageDir: string;
 
   constructor(storageDir = ".storage") {
-    this.storageDir = storageDir;
+    this.storageDir = resolve(storageDir);
   }
 
   async save(
@@ -58,18 +58,21 @@ export class LocalArtifactStorage implements ArtifactStorage {
     const contentType: PersistedContentType = isBinary ? "binary" : "json";
     const persistedData = isBinary ? encodeBinaryContent(data) : data;
 
-    const path = join(this.storageDir, reference.path);
+    const path = this.resolvePath(reference);
+    await mkdir(this.storageDir, { recursive: true });
+    await this.assertNoSymlinkParents(path);
+    await mkdir(dirname(path), { recursive: true });
+    await this.assertInsideStorageRoot(path);
     const document: PersistedArtifactDocument = {
-      reference: { id: reference.id, path },
+      reference: { id: reference.id, path: reference.path },
       metadata,
       contentType,
       data: persistedData,
     };
 
-    await mkdir(dirname(path), { recursive: true });
     await writeFile(path, serializePersistedDocument(document));
 
-    return { id: reference.id, path };
+    return { id: reference.id, path: reference.path };
   }
 
   async saveManyAt(writes: readonly ArtifactWrite[]): Promise<ArtifactReference[]> {
@@ -81,7 +84,9 @@ export class LocalArtifactStorage implements ArtifactStorage {
   }
 
   async load(reference: ArtifactReference): Promise<unknown> {
-    const raw = await readFile(this.resolvePath(reference), "utf-8");
+    const path = this.resolvePath(reference);
+    await this.assertInsideStorageRoot(path);
+    const raw = await readFile(path, "utf-8");
     const stored = deserializePersistedDocument(raw);
 
     if (stored.contentType === "binary") {
@@ -91,13 +96,67 @@ export class LocalArtifactStorage implements ArtifactStorage {
   }
 
   async getMetadata(reference: ArtifactReference): Promise<ArtifactMetadata> {
-    const raw = await readFile(this.resolvePath(reference), "utf-8");
+    const path = this.resolvePath(reference);
+    await this.assertInsideStorageRoot(path);
+    const raw = await readFile(path, "utf-8");
     const stored = deserializePersistedDocument(raw);
     return stored.metadata;
   }
 
   private resolvePath(reference: ArtifactReference): string {
-    if (isAbsolute(reference.path)) return reference.path;
-    return join(this.storageDir, reference.path);
+    if (
+      !reference.path
+      || isAbsolute(reference.path)
+      || reference.path.includes("\\")
+      || reference.path.split("/").some((part) => part === ".." || part === "." || part === "")
+    ) {
+      throw new Error("Artifact path must be a non-empty relative path inside the storage root.");
+    }
+    const path = resolve(this.storageDir, reference.path);
+    const pathFromRoot = relative(this.storageDir, path);
+    if (pathFromRoot === ".." || pathFromRoot.startsWith(`..${sep}`) || isAbsolute(pathFromRoot)) {
+      throw new Error("Artifact path must stay inside the storage root.");
+    }
+    return path;
+  }
+
+  private async assertInsideStorageRoot(path: string): Promise<void> {
+    const root = await realpath(this.storageDir);
+    try {
+      const target = await lstat(path);
+      if (target.isSymbolicLink()) {
+        throw new Error("Artifact path cannot be a symbolic link.");
+      }
+    } catch (error) {
+      if (typeof error !== "object" || error === null || !("code" in error)
+        || (error as { code?: unknown }).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    const resolvedPath = await realpath(dirname(path));
+    const relativePath = relative(root, resolvedPath);
+    if (relativePath === ".." || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath)) {
+      throw new Error("Artifact path resolves outside the storage root.");
+    }
+  }
+
+  private async assertNoSymlinkParents(path: string): Promise<void> {
+    let current = dirname(path);
+    while (current !== this.storageDir) {
+      try {
+        const parent = await lstat(current);
+        if (parent.isSymbolicLink()) {
+          throw new Error("Artifact parent path cannot contain a symbolic link.");
+        }
+      } catch (error) {
+        if (typeof error !== "object" || error === null || !("code" in error)
+          || (error as { code?: unknown }).code !== "ENOENT") {
+          throw error;
+        }
+      }
+      const next = dirname(current);
+      if (next === current) break;
+      current = next;
+    }
   }
 }

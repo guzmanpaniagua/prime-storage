@@ -12,12 +12,16 @@ const packageIndex: PublishIndex = {
   packages: [
     {
       packageId: 1,
-      filename: "primes-000001.zip",
+      filename: "primes-pack-000001.zip",
       sha256: "a".repeat(64),
       sizeBytes: 128,
-      itemCount: 10,
+      firstLogicalBlock: 0,
+      lastLogicalBlock: 9,
+      blockSize: 10,
+      blockCount: 10,
+      generatorVersion: "1.0.0",
+      wheelVersion: "1.0.0",
       publishedAt: "2026-11-06T00:00:00.000Z",
-      version: "1.0.0",
     },
   ],
 };
